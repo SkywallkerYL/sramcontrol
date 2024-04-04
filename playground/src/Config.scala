@@ -32,7 +32,10 @@ trait Config {
 
   val MaxfifoNum = 200
 
+  val maxlenNum = 1024
+  val lenwidth = log2Ceil(maxlenNum)
 
-
+  val priornum = 8
+  val priorwidth = log2Ceil(priornum-1)
 }
 object Config extends Config {}

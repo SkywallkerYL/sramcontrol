@@ -44,14 +44,14 @@ class DataChannel (width: Int) extends Bundle with Config{
   val data   = Input(UInt((width).W))
   val sop    = Input(Bool())
   val eop    = Input(Bool())
-  val prior  = Input(UInt(3.W))
+  val prior  = Input(UInt(priorwidth.W))
   val ready  = Output(Bool())
 }
 class AddrChannel (width: Int) extends Bundle with Config{
   val valid  = Input(Bool())
   val addr   = Input(UInt((width).W))
-  val length = Input(UInt((16).W))
-  val prior  = Output(UInt(3.W))
+  val length = Input(UInt((lenwidth).W))
+  val prior  = Output(UInt(priorwidth.W))
   val ready  = Output(Bool())
 }
 
