@@ -7,6 +7,31 @@ import java.io._
 
 
 
+class CrcBlackBox extends BlackBox {
+  val io = IO(new Bundle {
+    val clk = Input(Clock())
+    val rst = Input(Bool())
+    val crcen = Input(Bool())
+    val data = Input(UInt(8.W))
+    val crc = Output(UInt(32.W))
+  })
+  override def desiredName = "crc"
+}
+
+class CrcModel extends Module with COMMON{
+  val io = IO(new Bundle {
+    val crcen = Input(Bool())
+    val data = Input(UInt(8.W))
+    val crc = Output(UInt(32.W))
+  })
+  val crc = Module(new CrcBlackBox)
+  crc.io.clk := clock
+  crc.io.rst := reset
+  crc.io.crcen := io.crcen
+  crc.io.data := io.data
+  io.crc := crc.io.crc
+}
+
 class ramModel(addrwidth:Int, datawidth : Int) extends BlackBox {
   val io = IO(new Bundle {
     val clock = Input(Clock())

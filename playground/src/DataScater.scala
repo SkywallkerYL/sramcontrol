@@ -33,10 +33,15 @@ import chisel3.experimental._
 不然每次都得等第一包数据校验完。
 这样子fifo里面会同时有不同包的数据。
 
+//还有一个问题，接受数据的端口和目的端口是不一样的， 
+这里想的一个方法是scater模块外部还要套一个仲裁  
+可以实现一个AHB或者什么的 。根据输入数据的目的端口，和优先级，将数据发送给对应的scater模块。
+但这里先不管了，先实现一个scater模块，然后再考虑这个问题。Scater只管接受数据，做校验，输出数据。
 
 *******/
 class DataScater extends Module with Config {
   val io = IO(new Bundle{
+    val Wr = Flipped(new ChannelOut(DataWidth))
     val Rd = new ChannelOut(DataWidth)
     val SgData = new DataChannel(DataWidth)
     val SgAddr = new AddrChannel(AddrWidth)
@@ -49,253 +54,50 @@ class DataScater extends Module with Config {
   io.Rd.sop := false.B
   io.Rd.eop := false.B
 
-  //SG直接转发给arbiter
-  io.ArbiterAddr <> io.SgAddr
+  //priornum个优先级对应的数据fifo
+  val DataFifo = Seq.fill(priornum)(Module(new fiforam(MaxfifoNum,DataWidth)))
+  //priornum个length Reg 统计当前接受数据包的长度
+  val DataLen = RegInit(VecInit(Seq.fill(priornum)(0.U(lenwidth.W))))
 
+  //priornum个length fifo 统计已经存入的数据包长度 就是整包数据都写进去后，把DataLen写入这个fifo
+  val DataLenFifo = Seq.fill(priornum)(Module(new fiforam(MaxfifoNum,lenwidth)))
 
-  //首先实例化8个优先级对应的ECC的Fifo
-  val eccFifo = Seq.fill(priornum)(Module(new fiforam(addrwidth,8)))
-  //实例化1个ecc的寄存器，位宽为8
-  val eccReg = (RegInit(0.U(8.W)))
-  //记录当前ecc的位数
-  val eccCount = RegInit(0.U(3.W))
-  //做奇偶校验的数是输入数据自身异或左移eccCount位
-  val eccData = Wire(UInt((8).W)
-  eccData := io.SgData.data.xorR << eccCount
-  //然后实例化1个记录数据包长度的寄存器
-  val lenReg = (RegInit(0.U(lenwidth.W)))
-  //然后实例化8个记录数据包长度的fifo
-  val lenFifo = Seq.fill(priornum)(Module(new fiforam(addrwidth,lenwidth)))
-  //prior 记录当前处理的数据优先级
-  val prior = RegInit(0.U(priorwidth.W)) 
-  //数据读入部分的控制状态机
-  val sIdle :: sData :: Nil = Enum(2)
-  //初始化状态机
-  val rdstate = RegInit(sIdle)
-  switch(rdstate){
-    is(sIdle){
-      //当SG模块数据Valid拉高时
-      when(io.SgData.valid && io.SgData.sop){
-        rdstate := sData
-        prior := io.SgData.prior
-        for(i <- 0 until priornum){
-          when(io.SgData.prior === i.U){
-            //eccReg存输入数据的奇偶校验 即输入数据的自身所有位异或
-            eccReg := eccData | eccReg
-            lenReg := 0.U
-            eccCount := 1.U 
-          }
-        }
-      }
-    }
-    is(sData){
-      //当输入数据有效时将输入数据的奇偶校验存入eccReg
-      when(io.SgData.valid){
-        lenReg := lenReg + 1.U 
-        eccReg := eccData | eccReg
-        eccCount := eccCount + 1.U
-        //eccCount = 7时，表示做满了8个数据的奇偶校验，此时将eccReg的数据存入对应的eccFifo
-        //并且eccCount清零 然后eccReg清零
-        //最后一个数据到来时也要做这个操作
-        when(eccCount === 7.U || io.SgData.eop){
-          for(i <- 0 until priornum){
-            when(prior === i.U){
-              eccFifo(i).io.fifowrite.din := eccData | eccReg
-              eccFifo(i).io.fifowrite.write := true.B
-            }
-          }
-          eccReg := 0.U
-          eccCount := 0.U
-          when(io.SgData.eop){
-            //数据包长度存入lenFifo
-            for(i <- 0 until priornum){
-              when(prior === i.U){
-                lenFifo(i).io.fifowrite.din := lenReg + 1.U
-                lenFifo(i).io.fifowrite.write := true.B
-              }
-            }
-            //跳回Idle状态 等待下一个数据包
-            rdstate := sIdle
-          }
-        }
-
-      }
-    }   
+  //一个处理模块，从外部接受数据，根据优先级写入fifo，并且统计数据长度 记录到Datalen
+  val InProcess = (Module(new DataInProcess)) 
+  InProcess.io.Wr <> io.Wr
+  //依次连接每一个fifo
+  for(i <- 0 until priornum){
+    InProcess.io.fifowrite(i) <> DataFifo(i).io.fifo.fifowrite
+    InProcess.io.lenfifowrite(i) <> DataLenFifo(i).io.fifo.fifowrite
   }
-  //数据输出的控制状态机   
-  //当外部信号的ready拉高时，根据优先级从对应的fifo中读出校验数据 和数据包的长度 
-  // i 越小 优先级越高，优先从i=0的fifo中读取数据
+  //InProcess.io.fifowrite := DataFifo
+
+
+
+
+  //一个处理模块，根据优先级，从fifo中读出数据，从Datalenfifo中获取总的数据长，
+  //优先级更高的fifo 不空时，优先从里面读
+  //每<=60个数据包计算一次CRC，校验数据，然后将校验数据添加到尾部，一块发送给仲裁模块
+  //每8bit发送一次，64个数据作为最大包长。将对应的Datalength存如拆包后的fifo中
   
-  //首先获取每个fifo的空状态 
-  val eccFifonotEmpty = Wire(Vec(priornum,Bool()))
-  for(i <- 0 until priornum){
-    eccFifonotEmpty(i) := !eccFifo(i).io.fiforead.empty && !lenFifo(i).io.fiforead.empty
-  }
-  //eccFifonotEmpty(i)为true时表示第i个fifo不为空
-  //将他自己做一个或，确定至少有一个fifo非空
-  val eccFifonotEmptyOr = eccFifonotEmpty.reduce(_||_).asBool
-  //根据优先级选择输出时的优先级
-  //当i小的empty满足时 优先级选择i
-  val priorchoose = Wire(UInt(priorwidth.W))
+  //priornum个fifo 存拆包后的数据长度。同时统计拆了多少个数据包。
+  val ScaterDataFifo = Seq.fill(priornum)(Module(new fiforam(MaxfifoNum,lenwidth)))
+  //priornum个fifo 存拆完后的数据包个数。 
+  val ScaterDataNumFifo = Seq.fill(priornum)(Module(new fiforam(MaxfifoNum,lenwidth)))
 
-  for(i <- 0 until priornum){
-    when(eccFifonotEmpty(i)){
-      priorchoose := i.U
-    }
-  }
-  //当前8个Byte的ecc数据
-  val eccrData = RegInit(0.U(8.W))
-  val checkdata = io.ArbiterData.data
-  //做校验 通过异或运算 判断是否校验成功 成功为0  
-  val checkparity = (checkdata.xorR ^ eccrData(0)).asBool
+  //一个处理模块，从ScaterDataNumFifo读出数据包个数，从ScaterDataFifo读出数据长度， 
+  //向仲裁模块发送读请求 获取数据，计算CRC校验数据，校验通过后，将数据输出到外部 
+  //这里还得想一下数据校验不过怎么办，但是大致的流程就是读出来 发出去。
+  //状态机控制，包头给sop,包尾给eop
+  
 
-  val ByteCount = RegInit(0.U(3.W))
-  def ByteAdd(index : UInt) : UInt = {
-      Mux(index === (8 - 1).U, 0.U, index + 1.U)
-  }
-  //当前数据包的长度
-  val lenrData = RegInit(0.U(lenwidth.W))
+  //一个Datafifo，存经过Crc计算后的数据，当这一包的数据全部校验完成后，最后一个数据包发送end信号，第一个数据包发送start信号
+  val AfterCrcDataFifo = Module(new fiforam(MaxfifoNum,DataWidth))
+  //如果校验通过，将数据输出到外部，如果校验不通过，将数据丢弃，同时将读指针增加对应的长度。注意读指针的溢出问题。
 
-  //统计已经输出的数据
-  val lencount = RegInit(0.U(lenwidth.W))
-  //eccrData的数据来源于eccFifo,在读信号拉高之后的一个周期更新eccrData
+  //一个模块处理数据的输出。 
+  //一个状态机 当上一包数据校验通过后，接受start信号 end信号和读出数据的长度信号，从Datafifo中读出数据，输出到外部，同时输出sop和eop信号。
 
-  val eccread = VecInit(Seq.fill(priornum)(Wire(Bool())))
-  for(i <- 0 until priornum){
-    eccread(i) := eccFifo(i).io.fiforead.read
-  } 
-  val eccreadOr = eccread.reduce(_||_).asBool
-  val eccreadNext = RegNext(eccreadOr)
-  val priorNext = RegNext(priorchoose)
-  val eccReadlocal = Wire(UInt(8.W))
-  for(i <- 0 until priornum){
-    when(priorNext === i.U){
-      eccReadlocal := eccFifo(i).io.fiforead.dout
-    }
-  }
-  when(eccreadNext){
-    for(i <- 0 until priornum){
-      when(priorNext === i.U){
-        eccrData := eccFifo(i).io.fiforead.dout
-      }
-    }
-  }
-  val lenread = VecInit(Seq.fill(priornum)(Wire(Bool())))
-  for(i <- 0 until priornum){
-    lenread(i) := lenFifo(i).io.fiforead.read
-  }
-  val lenreadOr = lenread.reduce(_||_).asBool
-  val lenreadNext = RegNext(lenreadOr)
-
-  when(lenreadNext){
-    for(i <- 0 until priornum){
-      when(priorNext === i.U){
-        lenrData := lenFifo(i).io.fiforead.dout
-      }
-    }
-  }
-
-  //存地址和读取长度
-  val readaddr = RegInit(0.U(AddrWidth.W))
-  val readlength = RegInit(0.U(lenwidth.W))
-
-  //统计这个数据包已经接受的数据
-  val lencountlocal = RegInit(0.U(lenwidth.W))
-
-  //首先会根据选择的优先级向sg模块发送读请求 获取该数据对应的地址和长度
-  //然后向仲裁模块发送读请求 获取数据的数值，并且和eccFifo中的数据做校验
-  //校验成功则将数据输出到外部 
-  //当数据包的长度为0时，发送eop信号
-  //否则仍然向sg模块发送读请求 获取下一个拆分的数据
-  //状态命名不能和之前相同
-  val sRead :: getDatalen :: sArbiter :: getData ::waitupdate :: Nil = Enum(5)
-  val wrstate = RegInit(sRead)
-  io.SgAddr.prior := priorNext
-
-  switch(wrstate){
-    is(sRead){
-      //当外部信号的ready拉高时 并且至少有一个fifo非空时
-      io.SgAddr.ready := false.B
-
-      when(io.Rd.ready&&eccFifonotEmptyOr){
-        //根据优先级从对应的fifo中读出校验数据 和数据包的长度
-        for(i <- 0 until priornum){
-          when(priorchoose === i.U){
-            //读出eccFifo中的数据
-            eccFifo(i).io.fiforead.read := true.B
-            //读出lenFifo中的数据
-            lenFifo(i).io.fiforead.read := true.B
-          }
-        }
-        //向sg模块发送读请求 获取该数据对应的地址和长度
-        io.SgAddr.ready := true.B
-        //状态机跳转到仲裁状态
-        wrstate := getDatalen
-      }
-    }
-    
-    is(getDatalen){
-      //当前周期获取了data和len
-      lencount := 0.U 
-      ByteCount := 0.U 
-      wrstate := sArbiter
-    }
-
-    is(sArbiter){
-      //向SG模块获取读的地址和长度，转发给仲裁模块
-      //从SG模块得到的地址和长度，直接传给仲裁模块
-      //准备接受地址和长度
-      io.SgAddr.ready := io.ArbiterAddr.ready
-      io.ArbiterAddr.valid := io.SgAddr.valid
-      //当仲裁模块准备号接受数据之后 
-      when(io.ArbiterAddr.valid && io.ArbiterAddr.ready ){
-        readaddr := io.SgAddr.addr
-        readlength := io.SgAddr.length
-        //状态机跳转到获取数据状态
-        wrstate := getData
-        lencountlocal := 0.U 
-      }
-    }
-    //数据直接输出 
-    is(getData){
-      
-
-      io.Rd.valid := io.ArbiterData.valid
-      io.ArbiterAddr.ready := io.Rd.ready
-      io.Rd.data := Mux(!checkparity,io.ArbiterData.data,0.U) 
-      io.Rd.sop := lencount === 0.U
-      io.Rd.eop := lencount === lenrData 
-      when(io.ArbiterData.valid && io.Rd.ready){
-        ByteCount := ByteAdd(ByteCount)
-        eccData := eccData >> 1.U 
-
-
-        lencount := lencount + 1.U
-        lencountlocal := lencountlocal + 1.U
-        when(lencount === lenrData){
-          wrstate := sRead
-        }.elsewhen(lencountlocal === readlength){
-          //当前长度的数据发送完成，但是数据包还没有完全发送，
-          //跳转下一个态，根据优先级获取下一个数据包的地址和长度
-          wrstate := sArbiter
-        }.elsewhen(ByteCount === 7.U){
-          //8个Byte校验完成，读取下一个eccData
-          //自动拉高eccFifo的读信号
-          for(i <- 0 until priornum){
-            when(priorNext === i.U){
-              eccFifo(i).io.fiforead.read := true.B
-            }
-          }
-          //空一个状态出来等待eccFifo的数据
-          wrstate := waitupdate
-        }
-      }
-    }
-    is(waitupdate){
-      //等待eccFifo的数据
-      wrstate := getData
-    }
-  }
 
 
 
