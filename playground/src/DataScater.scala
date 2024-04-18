@@ -70,7 +70,7 @@ class DataScater extends Module with Config {
     InProcess.io.fifowrite(i) <> DataFifo(i).io.fifo.fifowrite
     InProcess.io.lenfifowrite(i) <> DataLenFifo(i).io.fifo.fifowrite
   }
-  //InProcess.io.fifowrite := DataFifo
+
 
 
 
@@ -79,13 +79,18 @@ class DataScater extends Module with Config {
   //优先级更高的fifo 不空时，优先从里面读
   //每<=60个数据包计算一次CRC，校验数据，然后将校验数据添加到尾部，一块发送给仲裁模块
   //每8bit发送一次，64个数据作为最大包长。将对应的Datalength存如拆包后的fifo中
+  //并且将仲裁模块返回的地址存如地址fifo中
   
   //priornum个fifo 存拆包后的数据长度。同时统计拆了多少个数据包。
-  val ScaterDataFifo = Seq.fill(priornum)(Module(new fiforam(MaxfifoNum,lenwidth)))
+  val ScaterDataLenFifo = Seq.fill(priornum)(Module(new fiforam(MaxfifoNum,lenwidth)))
   //priornum个fifo 存拆完后的数据包个数。 
   val ScaterDataNumFifo = Seq.fill(priornum)(Module(new fiforam(MaxfifoNum,lenwidth)))
+  //priornum个fifo 仲裁模块返回的写入地址
+  val ScaterAddrFifo = Seq.fill(priornum)(Module(new fiforam(MaxfifoNum,AddrWidth)))
 
-  //一个处理模块，从ScaterDataNumFifo读出数据包个数，从ScaterDataFifo读出数据长度， 
+
+
+  //一个处理模块，从ScaterDataNumFifo读出数据包个数，从ScaterDataFifo读出数据长度，从AddrFifo读出地址
   //向仲裁模块发送读请求 获取数据，计算CRC校验数据，校验通过后，将数据输出到外部 
   //这里还得想一下数据校验不过怎么办，但是大致的流程就是读出来 发出去。
   //状态机控制，包头给sop,包尾给eop
