@@ -70,38 +70,37 @@ class DataScater extends Module with Config {
     InProcess.io.fifowrite(i) <> DataFifo(i).io.fifo.fifowrite
     InProcess.io.lenfifowrite(i) <> DataLenFifo(i).io.fifo.fifowrite
   }
-
-
-
-
-
   //一个处理模块，根据优先级，从fifo中读出数据，从Datalenfifo中获取总的数据长，
   //优先级更高的fifo 不空时，优先从里面读
   //每<=60个数据包计算一次CRC，校验数据，然后将校验数据添加到尾部，一块发送给仲裁模块
   //每8bit发送一次，64个数据作为最大包长。将对应的Datalength存如拆包后的fifo中
   //并且将仲裁模块返回的地址存如地址fifo中
-  
+  val ScaterCoreInst = (Module(new ScaterCore))
   //priornum个fifo 存拆包后的数据长度。同时统计拆了多少个数据包。
   val ScaterDataLenFifo = Seq.fill(priornum)(Module(new fiforam(MaxfifoNum,lenwidth)))
   //priornum个fifo 存拆完后的数据包个数。 
   val ScaterDataNumFifo = Seq.fill(priornum)(Module(new fiforam(MaxfifoNum,lenwidth)))
   //priornum个fifo 仲裁模块返回的写入地址
   val ScaterAddrFifo = Seq.fill(priornum)(Module(new fiforam(MaxfifoNum,AddrWidth)))
-
-
-
+  //模块端口连接
+  ScaterCoreInst.io.datafiforead <> DataFifo.map(_.io.fifo.fiforead)
+  ScaterCoreInst.io.lenfiforead <> DataLenFifo.map(_.io.fifo.fiforead)
+  ScaterCoreInst.io.unpackedNumFifoWrite <> ScaterDataNumFifo.map(_.io.fifo.fifowrite)
+  ScaterCoreInst.io.unpackedLenFifoWrite <> ScaterDataLenFifo.map(_.io.fifo.fifowrite)
+  ScaterCoreInst.io.unpackedAddrFifoWrite <> ScaterAddrFifo.map(_.io.fifo.fifowrite)
+  ScaterCoreInst.io.ArbiterData <> io.ArbiterData
+  ScaterCoreInst.io.ArbiterAddr <> io.ArbiterAddr
   //一个处理模块，从ScaterDataNumFifo读出数据包个数，从ScaterDataFifo读出数据长度，从AddrFifo读出地址
   //向仲裁模块发送读请求 获取数据，计算CRC校验数据，校验通过后，将数据输出到外部 
   //这里还得想一下数据校验不过怎么办，但是大致的流程就是读出来 发出去。
   //状态机控制，包头给sop,包尾给eop
   
 
-  //一个Datafifo，存经过Crc计算后的数据，当这一包的数据全部校验完成后，最后一个数据包发送end信号，第一个数据包发送start信号
-  val AfterCrcDataFifo = Module(new fiforam(MaxfifoNum,DataWidth))
-  //如果校验通过，将数据输出到外部，如果校验不通过，将数据丢弃，同时将读指针增加对应的长度。注意读指针的溢出问题。
-
-  //一个模块处理数据的输出。 
-  //一个状态机 当上一包数据校验通过后，接受start信号 end信号和读出数据的长度信号，从Datafifo中读出数据，输出到外部，同时输出sop和eop信号。
+  ////一个Datafifo，存经过Crc计算后的数据，当这一包的数据全部校验完成后，最后一个数据包发送end信号，第一个数据包发送start信号
+  //val AfterCrcDataFifo = Module(new fiforam(MaxfifoNum,DataWidth))
+  ////如果校验通过，将数据输出到外部，如果校验不通过，将数据丢弃，同时将读指针增加对应的长度。注意读指针的溢出问题。
+  ////一个模块处理数据的输出。 
+  ////一个状态机 当上一包数据校验通过后，接受start信号 end信号和读出数据的长度信号，从Datafifo中读出数据，输出到外部，同时输出sop和eop信号。
 
 
 

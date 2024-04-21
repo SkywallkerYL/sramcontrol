@@ -51,7 +51,8 @@ class AddrChannel (width: Int) extends Bundle with Config{
   val valid  = Input(Bool())
   val addr   = Input(UInt((width).W))
   val length = Input(UInt((lenwidth).W))
-  val prior  = Output(UInt(priorwidth.W))
+  val prior  = Input(UInt(priorwidth.W))
   val ready  = Output(Bool())
 }
+
 

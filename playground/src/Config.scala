@@ -37,5 +37,7 @@ trait Config {
 
   val priornum = 8
   val priorwidth = log2Ceil(priornum-1)
+  //crc的最大数据位数
+  val maxcrcnum = 60
 }
 object Config extends Config {}

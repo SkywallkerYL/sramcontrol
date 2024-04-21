@@ -22,11 +22,12 @@ class CrcModel extends Module with COMMON{
   val io = IO(new Bundle {
     val crcen = Input(Bool())
     val data = Input(UInt(8.W))
+    val rst = Input(Bool())
     val crc = Output(UInt(32.W))
   })
   val crc = Module(new CrcBlackBox)
   crc.io.clk := clock
-  crc.io.rst := reset
+  crc.io.rst := reset || io.rst
   crc.io.crcen := io.crcen
   crc.io.data := io.data
   io.crc := crc.io.crc
