@@ -5,20 +5,7 @@ import chisel3.experimental._
 import chisel3.util._
 
 
-class WriterIO(size: Int) extends Bundle {
-    val write = Input(Bool())
-    val full = Output(Bool())
-    val din = Input(UInt(size.W))
-}
-class ReaderIO(size: Int) extends Bundle {
-    val read = Input(Bool())
-    val empty = Output(Bool())
-    val dout = Output(UInt(size.W))
-}
-class SyncFifoIO(width: Int) extends Bundle with COMMON {
-  val fiforead = new ReaderIO(width)
-  val fifowrite= new WriterIO(width)
-}
+
 
 class Asynfifo(val size : Int, val width : Int) extends Module {
   val io = IO(new Bundle {
@@ -187,7 +174,7 @@ class flushramfifo(val size : Int, val width : Int) extends Module {
   io.full := (size.U === count)
   io.empty := (count === 0.U)
 }
-class fiforam(val size : Int, val width : Int) extends Module with COMMON{
+class fiforam(val size : Int, val width : Int) extends Module with Config{
   val io = IO(new Bundle {
         val fifo = new SyncFifoIO(width)
         val flush = Input(Bool())
@@ -201,7 +188,7 @@ class fiforam(val size : Int, val width : Int) extends Module with COMMON{
   fifo.io.readFlag := io.fifo.fiforead.read
   fifo.io.flush := io.flush
 }
-class fifoinst(val size : Int, val width : Int) extends Module with COMMON{
+class fifoinst(val size : Int, val width : Int) extends Module with Config{
   val io = IO(new Bundle {
         val fifo = new SyncFifoIO(width)
   })

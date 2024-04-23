@@ -3,11 +3,40 @@ package FFT
 
 import chisel3._
 import chisel3.util._
-class AxiStream extends Bundle with Config{
+class AxiStream(width : Int) extends Bundle with Config{
   val valid  = Output(Bool())
-  val data   = Output(UInt((DataWidthIn*2).W))
+  val data   = Output(UInt((width).W))
   val ready  = Input(Bool())
   val last   = Output(Bool())
+}
+class WriterIO(size: Int) extends Bundle {
+    val write = Input(Bool())
+    val full = Output(Bool())
+    val din = Input(UInt(size.W))
+}
+class ReaderIO(size: Int) extends Bundle {
+    val read = Input(Bool())
+    val empty = Output(Bool())
+    val dout = Output(UInt(size.W))
+}
+
+
+class SyncFifoIO(width: Int) extends Bundle with Config {
+  val fiforead = new ReaderIO(width)
+  val fifowrite= new WriterIO(width)
+}
+//基本的RAM读写端口
+class RamRead(addrwidth:Int, datawidth : Int) extends Bundle with Config{
+  val rdData = Input(UInt(datawidth.W))
+  val rden   = Output(Bool())
+  val rdAddr = Output(UInt(addrwidth.W))  
+  val rdValid = Input(Bool())   
+}
+class RamWrite(addrwidth:Int, datawidth : Int) extends Bundle with Config{
+  val wrData = Output(UInt(datawidth.W))
+  val wren   = Output(Bool())
+  val wrAddr = Output(UInt(addrwidth.W))  
+  val wrValid = Input(Bool())   
 }
 class AxiStreamSingle extends Bundle with Config{
   val valid  = Output(Bool())

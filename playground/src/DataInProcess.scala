@@ -13,8 +13,8 @@ class DataInProcess extends Module with Config {
   val io = IO(new Bundle{
     val Wr = Flipped(new ChannelOut(DataWidth))
     val fifowrite = Vec(priornum,Flipped(new WriterIO(DataWidth)))
-		val lenfifowrite = Vec(priornum,Flipped(new WriterIO(lenwidth)))
-		val update = Output(Bool())
+	val lenfifowrite = Vec(priornum,Flipped(new WriterIO(lenwidth)))
+	val update = Output(Bool())
     val prior = Output(UInt(priorwidth.W))
     val DataLen = Output(UInt(lenwidth.W))
   })

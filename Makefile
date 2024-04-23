@@ -16,6 +16,8 @@ commit:
 	git add -f ./csrc/*.h
 	git add -f ./csrc/*.cpp 
 	git add -f Makefile
+	git add -f ./ModuleIntro/*.md 
+	git add -f ./ModuleIntro/*.svg
 	git commit -m "$(COMMIT_MSG)"
 	git push 
 

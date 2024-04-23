@@ -18,7 +18,7 @@ class CrcBlackBox extends BlackBox {
   override def desiredName = "crc"
 }
 
-class CrcModel extends Module with COMMON{
+class CrcModel extends Module with Config{
   val io = IO(new Bundle {
     val crcen = Input(Bool())
     val data = Input(UInt(8.W))
@@ -27,7 +27,7 @@ class CrcModel extends Module with COMMON{
   })
   val crc = Module(new CrcBlackBox)
   crc.io.clk := clock
-  crc.io.rst := reset || io.rst
+  crc.io.rst := reset.asBool || io.rst
   crc.io.crcen := io.crcen
   crc.io.data := io.data
   io.crc := crc.io.crc
@@ -42,7 +42,7 @@ class ramModel(addrwidth:Int, datawidth : Int) extends BlackBox {
   })
   override def desiredName = s"ramModel_${addrwidth}_${datawidth}"
 }
-class SramModel(addrwidth:Int, datawidth : Int, Type : Int = 0) extends Module with MatrixInf{
+class SramModel(addrwidth:Int, datawidth : Int, Type : Int = 0) extends Module with Config{
   val io = IO(new Bundle {
     val read  = Flipped(new RamRead(addrwidth,datawidth) )
     //val write = Flipped(new RamWrite(addrwidth,datawidth))
@@ -58,7 +58,7 @@ class SramModel(addrwidth:Int, datawidth : Int, Type : Int = 0) extends Module w
    
   }
 }
-class DualSramModel(addrwidth:Int, datawidth : Int) extends Module with COMMON{
+class DualSramModel(addrwidth:Int, datawidth : Int) extends Module with Config{
   val io = IO(new Bundle {
     val read  = Flipped(new RamRead(addrwidth,datawidth) )
     val write = Flipped(new RamWrite(addrwidth,datawidth))
@@ -75,7 +75,7 @@ class DualSramModel(addrwidth:Int, datawidth : Int) extends Module with COMMON{
   io.read.rdData := sram.read(io.read.rdAddr)
 }
 
-class ramblackbox(addrwidth:Int, datawidth : Int) extends Module with COMMON{
+class ramblackbox(addrwidth:Int, datawidth : Int) extends Module with Config{
   val io = IO(new Bundle {
     val read  = Flipped(new RamRead(addrwidth,datawidth) )
     val write = Flipped(new RamWrite(addrwidth,datawidth))
@@ -95,7 +95,7 @@ class romModel(addrwidth:Int, datawidth : Int) extends BlackBox {
   })
   override def desiredName = s"romModel_${addrwidth}_${datawidth}"
 }
-class romblackbox(addrwidth:Int, datawidth : Int, Type : Int = 0) extends Module with COMMON{
+class romblackbox(addrwidth:Int, datawidth : Int, Type : Int = 0) extends Module with Config{
   val io = IO(new Bundle {
     val read  = Flipped(new RamRead(addrwidth,datawidth) )
   })

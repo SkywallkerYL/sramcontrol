@@ -85,8 +85,8 @@ class ScaterCore extends Module with Config {
   //记录选择的优先级,防止中途改变
   val prior = RegInit(0.U(priorwidth.W)) 
   //当前处理的数据 
-  val datain = io.datafiforead(prior).data
-  val lenin = io.lenfiforead(prior).data
+  val datain = io.datafiforead(prior).dout
+  val lenin = io.lenfiforead(prior).dout
   //当前数据总的长度
   val DataLen = RegInit(0.U(lenwidth.W))
   //记录数据的一个DataLen,统计拆包后的数据包长度//真实的DataLen为DataLen+1

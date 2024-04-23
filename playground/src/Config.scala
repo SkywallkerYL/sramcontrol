@@ -37,6 +37,9 @@ trait Config {
 
   val priornum = 8
   val priorwidth = log2Ceil(priornum-1)
+
+  val portnum = 16
+  val portwidth = log2Ceil(portnum-1)
   //crc的最大数据位数
   val maxcrcnum = 60
 }

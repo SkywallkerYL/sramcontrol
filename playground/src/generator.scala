@@ -18,19 +18,10 @@ object generator extends App with Config {
   //)
   //(new chisel3.stage.ChiselStage).execute(args, generator1) 
 }
-object Elaborate extends App {
-  // CheckNode VariableNode ProcessingUnit
-  // V2CMux  Decoder Noisegen gng(RandSeedParams())    
-  // GngWrapper(1) Topdecoder  
-  //Muxminandsecmin 
-  //CheckNodeCOL  DecoderCol
-  //rsdecoder  rsdecodertop 
-  //CheckNode2Col
-  //Errorbits   llrquanti
-  //Decoder2Col rsdecoder2colGauss   rsdecodertopGauss Decoder2Colnew rsdecoder2colBpskGauss
-  // Decoder1Colnew
-  def top = new Asynfifo(4,16)
-  val useMFC = true // use MLIR-based firrtl compiler
+object Elaborate extends App with Config {
+
+  def top = new SramControlModel
+  val useMFC = false // use MLIR-based firrtl compiler
   val generator = Seq(
     chisel3.stage.ChiselGeneratorAnnotation(() => top),
     //firrtl.stage.RunFirrtlTransformAnnotation(new AddModulePrefix()),
