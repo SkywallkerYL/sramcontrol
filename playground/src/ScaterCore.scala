@@ -16,14 +16,14 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 这样就可以支持地址分散。但这个信号已经加在addrchannel里面了，这里就不改了
 就是Addr通道的valid拉高时，表面当前仲裁模块把数据包的长度和地址都返回了，就直接存入fifo中
 但这个还没实现，还是靠上边拆分数据包的方法。其实就是我拆我的，你存你的，接受你返回的地址和长度
-
+但是这个目前还没有实现。
 *********/
 class ScaterCore extends Module with Config {
   val io = IO(new Bundle{
     //数据fifo读
-    val datafiforead = Vec(priornum,Flipped(new ReaderIO(DataWidth)))
+    val datafiforead = MixedVec(Seq.fill(priornum)(Flipped(new ReaderIO(DataWidth))))
     //数据包总长度fifo读
-    val lenfiforead = Vec(priornum,Flipped(new ReaderIO(lenwidth)))
+    val lenfiforead = MixedVec(Seq.fill(priornum)(Flipped(new ReaderIO(lenwidth))))
 
     //仲裁模块写数据请求
     val ArbiterData = Flipped(new DataChannel(DataWidth))
@@ -31,11 +31,11 @@ class ScaterCore extends Module with Config {
     val ArbiterAddr = new AddrChannel(AddrWidth)
 
     //拆包后数据包个数写入fifo 
-    val unpackedNumFifoWrite = Vec(priornum,Flipped(new WriterIO(DataWidth)))
+    val unpackedNumFifoWrite = MixedVec(Seq.fill(priornum)(Flipped(new WriterIO(DataWidth))))
     //拆包后数据包长度写入fifo
-    val unpackedLenFifoWrite = Vec(priornum,Flipped(new WriterIO(lenwidth)))
+    val unpackedLenFifoWrite = MixedVec(Seq.fill(priornum)(Flipped(new WriterIO(lenwidth))))
     //拆包后数据包地址写入fifo
-    val unpackedAddrFifoWrite = Vec(priornum,Flipped(new WriterIO(AddrWidth)))
+    val unpackedAddrFifoWrite = MixedVec(Seq.fill(priornum)(Flipped(new WriterIO(AddrWidth))))
     
 
   })
@@ -75,6 +75,8 @@ class ScaterCore extends Module with Config {
   //总的fifo的空情况
   val fifo_empty_all = fifo_empty.reduce(_ && _)
   //当优先级更高的fifo不空时，确认prior的值
+  //这里其实是一个输出调度的情况，后边可以优化，就是当制定一种策略，
+  //输入是fifo的空情况，输出是一个优先级的选择
   val priorMux = Wire(UInt(priorwidth.W))
   priorMux := 0.U
   for(i <- 0 until priornum){
@@ -85,8 +87,10 @@ class ScaterCore extends Module with Config {
   //记录选择的优先级,防止中途改变
   val prior = RegInit(0.U(priorwidth.W)) 
   //当前处理的数据 
-  val datain = io.datafiforead(prior).dout
-  val lenin = io.lenfiforead(prior).dout
+  val datain = MuxLookup(prior, io.datafiforead(0).dout, 
+  (0 until priornum).map(i => (i.U -> io.datafiforead(i).dout)))
+  val lenin = MuxLookup(prior, io.lenfiforead(0).dout, 
+  (0 until priornum).map(i => (i.U -> io.lenfiforead(i).dout)))
   //当前数据总的长度
   val DataLen = RegInit(0.U(lenwidth.W))
   //记录数据的一个DataLen,统计拆包后的数据包长度//真实的DataLen为DataLen+1
@@ -105,8 +109,16 @@ class ScaterCore extends Module with Config {
         prior := priorMux
 	      DataLen := 0.U
         //读取数据包长度 和 数据
-        io.datafiforead(priorMux).read := true.B
-        io.lenfiforead(priorMux).read := true.B
+        io.datafiforead.zipWithIndex.foreach { case (fifo, i) =>
+          when(priorMux === i.U) {
+            fifo.read := true.B
+          }
+        }
+        io.lenfiforead.zipWithIndex.foreach { case (fifo, i) =>
+          when(priorMux === i.U) {
+            fifo.read := true.B
+          }
+        }
         unpackDataLen := 0.U
         unpackDataNum := 0.U
         //注意fifo的模型要保持数据 
@@ -122,13 +134,21 @@ class ScaterCore extends Module with Config {
       crc.io.data := datain
       
       when(io.ArbiterData.ready){
-        io.datafiforead(prior).read := true.B
+        io.datafiforead.zipWithIndex.foreach { case (fifo, i) =>
+          when(prior === i.U) {
+            fifo.read := true.B
+          }
+        }
         DataLen := DataLen + 1.U
         unpackDataLen := unpackDataLen + 1.U
         crc.io.crcen := true.B 
         //当达到最大crc长度 或者 datalen 达到总的长度时，结束crc的输入
         when(DataLen === lenin || unpackDataLen === maxcrcnum.U-1.U){
-          io.datafiforead(prior).read := false.B
+          io.datafiforead.zipWithIndex.foreach { case (fifo, i) =>
+            when(prior === i.U) {
+              fifo.read := false.B
+            }
+          }
           state := sData
           crcCount := 0.U 
           unpackDataNum := unpackDataNum + 1.U
@@ -150,14 +170,26 @@ class ScaterCore extends Module with Config {
           //也可以不考虑，因为仲裁模块把data的ready拉高了
           when(io.ArbiterAddr.valid){
             //写入当前拆包的数据的地址 和数据包长度
-            io.unpackedLenFifoWrite(prior).write := true.B
-            io.unpackedLenFifoWrite(prior).din := unpackDataLen 
-            io.unpackedAddrFifoWrite(prior).write := true.B
-            io.unpackedAddrFifoWrite(prior).din := io.ArbiterAddr.addr
+            io.unpackedLenFifoWrite.zipWithIndex.foreach { case (fifo, i) =>
+              when(prior === i.U) {
+                fifo.write := true.B
+                fifo.din := unpackDataLen
+              }
+            }
+            io.unpackedAddrFifoWrite.zipWithIndex.foreach { case (fifo, i) =>
+              when(prior === i.U) {
+                fifo.write := true.B
+                fifo.din := io.ArbiterAddr.addr
+              }
+            }
             when(DataLen =/= lenin){
               state := sCrc
               unpackDataLen := 0.U 
-              io.datafiforead(prior).read := true.B
+              io.datafiforead.zipWithIndex.foreach { case (fifo, i) =>
+                when(prior === i.U) {
+                  fifo.read := true.B
+                }
+              }
             }.otherwise{
               state := sUpdate
             }
@@ -172,8 +204,12 @@ class ScaterCore extends Module with Config {
 		//向外部输出DataLen和prior
 		is(sUpdate){
       //整个数据包拆分完成，写入数据包个数
-      io.unpackedNumFifoWrite(prior).write := true.B
-      io.unpackedNumFifoWrite(prior).din := unpackDataNum
+      io.unpackedNumFifoWrite.zipWithIndex.foreach { case (fifo, i) =>
+        when(prior === i.U) {
+          fifo.write := true.B
+          fifo.din := unpackDataNum
+        }
+      }
       state := sIdle
 		}
   }
