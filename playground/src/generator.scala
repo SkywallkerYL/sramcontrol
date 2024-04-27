@@ -19,8 +19,8 @@ object generator extends App with Config {
   //(new chisel3.stage.ChiselStage).execute(args, generator1) 
 }
 object Elaborate extends App with Config {
-  // DataInProcess ScaterCore ReadQueueControl DataCollector
-  def top = new DataCollector
+  // DataInProcess ScaterCore DataCollector DataScater 
+  def top = new DataScater
   val useMFC = false // use MLIR-based firrtl compiler
   val generator = Seq(
     chisel3.stage.ChiselGeneratorAnnotation(() => top),

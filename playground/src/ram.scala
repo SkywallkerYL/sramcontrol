@@ -73,6 +73,8 @@ class DualSramModel(addrwidth:Int, datawidth : Int) extends Module with Config{
   }
   // 读取数据
   io.read.rdData := sram.read(io.read.rdAddr)
+  io.read.rdValid := RegNext(io.read.rden)
+  io.write.wrValid := io.write.wren
 }
 
 class ramblackbox(addrwidth:Int, datawidth : Int) extends Module with Config{
