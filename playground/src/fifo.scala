@@ -142,7 +142,7 @@ class flushramfifo(val size : Int, val width : Int) extends Module {
   mem.io.read.rdAddr := rPointer
   mem.io.write.wren := io.writeFlag
   mem.io.write.wrData := io.dataIn
-  mem.io.write.wrAddr := wPointer
+  mem.io.write.wrAddr := wPointer 
   val dataOut = Wire(UInt(width.W))
   dataOut := mem.io.read.rdData
   def indexAdd(index : UInt) : UInt = {

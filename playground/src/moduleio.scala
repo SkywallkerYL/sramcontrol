@@ -61,6 +61,17 @@ class AxiRead extends Bundle with Config{
   val rdata   = Input(UInt(AXIDATAWIDTH.W))
   val rlast   = Input(Bool())
 }
+class AxiWrite extends Bundle with Config{
+  val awready = Input(Bool())
+  val awvalid = Output(Bool())
+  val awaddr  = Output(UInt(AXIADDRWIDTH.W))
+  val awlen   = Output(UInt(AXILENWIDTH.W))
+
+  val wready  = Input(Bool())
+  val wvalid  = Output(Bool())
+  val wdata   = Output(UInt(AXIDATAWIDTH.W))
+  val wlast   = Output(Bool())
+}
 class ChannelOut (width: Int) extends Bundle with Config{
   val valid  = Output(Bool())
   val data   = Output(UInt((width).W))

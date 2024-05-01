@@ -6,26 +6,27 @@
 ![Diagram](SramControlModel.svg "Diagram")
 ## Ports
 
-| Port name           | Direction | Type   | Description |
-| ------------------- | --------- | ------ | ----------- |
-| clock               | input     |        |             |
-| reset               | input     |        |             |
-| io_SramWrData_valid | input     |        |             |
-| io_SramWrData_data  | input     | [7:0]  |             |
-| io_SramWrData_ready | output    |        |             |
-| io_SramWrData_last  | input     |        |             |
-| io_SramWrAddr_valid | input     |        |             |
-| io_SramWrAddr_data  | input     | [31:0] |             |
-| io_SramWrAddr_ready | output    |        |             |
-| io_SramWrAddr_last  | input     |        |             |
-| io_SramRdData_valid | output    |        |             |
-| io_SramRdData_data  | output    | [7:0]  |             |
-| io_SramRdData_ready | input     |        |             |
-| io_SramRdData_last  | output    |        |             |
-| io_SramRdAddr_valid | input     |        |             |
-| io_SramRdAddr_data  | input     | [31:0] |             |
-| io_SramRdAddr_ready | output    |        |             |
-| io_SramRdAddr_last  | input     |        |             |
+| Port name         | Direction | Type    | Description |
+| ----------------- | --------- | ------- | ----------- |
+| clock             | input     |         |             |
+| reset             | input     |         |             |
+| io_SramWr_awready | output    |         |             |
+| io_SramWr_awvalid | input     |         |             |
+| io_SramWr_awaddr  | input     | [35:0]  |             |
+| io_SramWr_awlen   | input     | [7:0]   |             |
+| io_SramWr_wready  | output    |         |             |
+| io_SramWr_wvalid  | input     |         |             |
+| io_SramWr_wdata   | input     | [255:0] |             |
+| io_SramWr_wlast   | input     |         |             |
+| io_SramRd_arready | output    |         |             |
+| io_SramRd_arvalid | input     |         |             |
+| io_SramRd_araddr  | input     | [35:0]  |             |
+| io_SramRd_arlen   | input     | [7:0]   |             |
+| io_SramRd_rready  | input     |         |             |
+| io_SramRd_rvalid  | output    |         |             |
+| io_SramRd_rdata   | output    | [255:0] |             |
+| io_SramRd_rlast   | output    |         |             |
+
 
 ## Instantiations
 

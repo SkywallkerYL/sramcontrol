@@ -151,24 +151,91 @@ SramControl 模块
 ********************/
 class SramControl extends BlackBox with Config {
   val io = IO(new Bundle{
-    //MMU写数据数据通道
-    val SramWrData = Flipped(new AxiStream(DataWidth))
-    //MMU写数据地址通道
-    val SramWrAddr = Flipped(new AxiStream(AddrWidth))
-    //MMU读数据数据通道
-    val SramRdData = (new AxiStream(DataWidth))
-    //MMU读数据地址通道
-    val SramRdAddr = Flipped(new AxiStream(AddrWidth))
+    //SramControl写数据数据通道
+    val SramWr  = Flipped(new AxiWrite)
+    //SramControl读数据数据通道
+    val SramRd  = Flipped(new AxiRead)
   })
 }
 
 class SramControlModel extends Module with Config {
   val io = IO(new Bundle{
-    val SramWrData = Flipped(new AxiStream(DataWidth))
-    val SramWrAddr = Flipped(new AxiStream(AddrWidth))
-    val SramRdData = (new AxiStream(DataWidth))
-    val SramRdAddr = Flipped(new AxiStream(AddrWidth))
+    //SramControl写数据数据通道
+    val SramWr  = Flipped(new AxiWrite)
+    //SramControl读数据数据通道
+    val SramRd  = Flipped(new AxiRead)
   })
   val sramcontrol = Module(new SramControl)
   io <> sramcontrol.io
+}
+
+/**
+//Sram 分配模块
+//实现一个Sram分配模块 最小分配单元是一块Sram，即1KB 
+
+当某个通道有写入请求时，首先向该模块发送一个请求分配。然后该模块将空闲的Sram分配给该通道
+
+当某个通道的数据全部读出后，向该模块发送一个释放请求，将该Sram释放。
+*///
+class SramManager extends BlackBox with Config {
+  val io = IO(new Bundle{
+    //Sram 请求分配通道
+    val SramReq = MixedVec(Seq.fill(portnum)(new AxiStream(SramIdwidth)))
+    //Sram 释放通道
+    val SramRelease = MixedVec(Seq.fill(portnum)(Flipped(new AxiStream(SramIdwidth))))
+  })
+}
+
+class SramManagerModel extends Module with Config {
+  val io = IO(new Bundle{
+    //Sram 请求分配通道
+    val SramReq = MixedVec(Seq.fill(portnum)(new AxiStream(SramIdwidth)))
+    //Sram 释放通道
+    val SramRelease = MixedVec(Seq.fill(portnum)(Flipped(new AxiStream(SramIdwidth))))
+  })
+  val srammanager = Module(new SramManager)
+  io <> srammanager.io
+}
+
+//空闲地址管理模块
+
+class FreeAddrManager extends BlackBox with Config {
+  val io = IO(new Bundle{
+    //Sram 请求分配通道
+    val SramReq = Flipped(new AxiStream(SramIdwidth))
+    //Sram 释放通道
+    val SramRelease = new AxiStream(SramIdwidth)
+    //空闲地址输出
+    val FreeAddr = new AxiStream(AddrWidth)
+    //当前最大能写的长度 其实也可以不要这个。
+    val MaxLen = Output(UInt(AddrWidth.W))
+
+    //读地址通道，根据这个对地址进行释放
+    val RdAddr = Flipped(new AxiStream(AddrWidth))
+    //写地址通道，根据这个对地址进行分配
+    val WrAddr = Flipped(new AxiStream(AddrWidth))
+
+
+  })
+}
+
+//优先级选择模块
+
+class PrioritySelect extends BlackBox with Config {
+  val io = IO(new Bundle{
+    //8个fifo的empty作为输入，表明该fifo是否为空 ，可以选择一个读出
+    val FifoEmpty = MixedVec(Seq.fill(portnum)(Input(Bool())))  
+    //输出一个选择的优先级
+    val Prior = Output(UInt(priorwidth.W))
+  })
+}
+class PrioritySelectModel extends Module with Config {
+  val io = IO(new Bundle{
+    //8个fifo的empty作为输入，表明该fifo是否为空 ，可以选择一个读出
+    val FifoEmpty = MixedVec(Seq.fill(portnum)(Input(Bool()))) 
+    //输出一个选择的优先级
+    val Prior = Output(UInt(priorwidth.W))
+  })
+  val priorityselect = Module(new PrioritySelect)
+  io <> priorityselect.io
 }

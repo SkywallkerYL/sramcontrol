@@ -40,6 +40,9 @@ trait Config {
 
   val portnum = 16
   val portwidth = log2Ceil(portnum-1)
+
+  val Sramnum = 32 
+  val SramIdwidth = log2Ceil(Sramnum-1)
   //crc的最大数据位数
   val maxcrcnum = 60
 }
