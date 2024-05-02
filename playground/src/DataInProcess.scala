@@ -19,8 +19,8 @@ class DataInProcess extends Module with Config {
     val lenfiforead = Flipped(new ReaderIO(lenwidth))
 
     val fifowrite = MixedVec(Seq.fill(priornum)(Flipped(new WriterIO(DataWidth))))
-	val lenfifowrite = MixedVec(Seq.fill(priornum)(Flipped(new WriterIO(lenwidth))))
-	val update = Output(Bool())
+	  val lenfifowrite = MixedVec(Seq.fill(priornum)(Flipped(new WriterIO(lenwidth))))
+	  val update = Output(Bool())
     val prior = Output(UInt(priorwidth.W))
     val DataLen = Output(UInt(lenwidth.W))
   })

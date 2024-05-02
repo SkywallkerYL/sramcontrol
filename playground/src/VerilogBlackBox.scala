@@ -199,7 +199,7 @@ class SramManagerModel extends Module with Config {
 
 //空闲地址管理模块
 
-class FreeAddrManager extends BlackBox with Config {
+class FreeAddrManagerV extends BlackBox with Config {
   val io = IO(new Bundle{
     //Sram 请求分配通道
     val SramReq = Flipped(new AxiStream(SramIdwidth))
@@ -224,7 +224,7 @@ class FreeAddrManager extends BlackBox with Config {
 class PrioritySelect extends BlackBox with Config {
   val io = IO(new Bundle{
     //8个fifo的empty作为输入，表明该fifo是否为空 ，可以选择一个读出
-    val FifoEmpty = MixedVec(Seq.fill(portnum)(Input(Bool())))  
+    val FifoEmpty = MixedVec(Seq.fill(priornum)(Input(Bool())))  
     //输出一个选择的优先级
     val Prior = Output(UInt(priorwidth.W))
   })
@@ -232,7 +232,7 @@ class PrioritySelect extends BlackBox with Config {
 class PrioritySelectModel extends Module with Config {
   val io = IO(new Bundle{
     //8个fifo的empty作为输入，表明该fifo是否为空 ，可以选择一个读出
-    val FifoEmpty = MixedVec(Seq.fill(portnum)(Input(Bool()))) 
+    val FifoEmpty = MixedVec(Seq.fill(priornum)(Input(Bool()))) 
     //输出一个选择的优先级
     val Prior = Output(UInt(priorwidth.W))
   })

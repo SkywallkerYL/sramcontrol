@@ -21,7 +21,8 @@ object generator extends App with Config {
 object Elaborate extends App with Config {
   // DataInProcess ScaterCore DataCollector DataScater 
   //SramManagerModel SramControlModel PrioritySelectModel
-  def top = new PrioritySelectModel
+  //FreeAddrManager
+  def top = new FreeAddrManager
   val useMFC = false // use MLIR-based firrtl compiler
   val generator = Seq(
     chisel3.stage.ChiselGeneratorAnnotation(() => top),
