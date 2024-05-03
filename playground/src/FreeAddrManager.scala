@@ -239,9 +239,9 @@ class FreeAddrManager extends Module with Config {
         }
         is(freeAddrFromFifo){
             io.FreeAddr.valid := true.B
-            io.FreeAddr.data := FreeAddr
+            io.FreeAddr.data := FreeAddr + AddrOffset
             io.MaxLen := MaxOffset
-            when(io.FreeAddr.ready){
+            when(io.WrAddr.valid){
                 //当前地址外部进行了写入，地址偏移+1
                 AddrOffset := AddrOffset + 1.U
                 when(AddrOffset === MaxOffset){
