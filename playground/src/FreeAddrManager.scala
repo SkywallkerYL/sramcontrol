@@ -97,6 +97,8 @@ class FreeAddrManager extends Module with Config {
             //当没有Sram被分配时，且需要空闲地址时，向Sram管理模块发送请求
             when(io.FreeAddr.ready && !RestFlag){
                 reqState := reqWait
+                //提前一个周期拉高 ready 
+                io.SramReq.ready := true.B
             }
         }
         is(reqWait){

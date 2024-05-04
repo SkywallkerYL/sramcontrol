@@ -149,7 +149,7 @@ SramControl 模块
 3.将数据写和读的信息转发给MMU模块。
 4.控制内部的Sram存储器
 ********************/
-class SramControl extends BlackBox with Config {
+class SramControlV extends BlackBox with Config {
   val io = IO(new Bundle{
     //SramControl写数据数据通道
     val SramWr  = Flipped(new AxiWrite)
@@ -165,7 +165,7 @@ class SramControlModel extends Module with Config {
     //SramControl读数据数据通道
     val SramRd  = Flipped(new AxiRead)
   })
-  val sramcontrol = Module(new SramControl)
+  val sramcontrol = Module(new SramControlV)
   io <> sramcontrol.io
 }
 
@@ -177,7 +177,7 @@ class SramControlModel extends Module with Config {
 
 当某个通道的数据全部读出后，向该模块发送一个释放请求，将该Sram释放。
 *///
-class SramManager extends BlackBox with Config {
+class SramManagerV extends BlackBox with Config {
   val io = IO(new Bundle{
     //Sram 请求分配通道
     val SramReq = MixedVec(Seq.fill(portnum)(new AxiStream(SramIdwidth)))
@@ -193,7 +193,7 @@ class SramManagerModel extends Module with Config {
     //Sram 释放通道
     val SramRelease = MixedVec(Seq.fill(portnum)(Flipped(new AxiStream(SramIdwidth))))
   })
-  val srammanager = Module(new SramManager)
+  val srammanager = Module(new SramManagerV)
   io <> srammanager.io
 }
 

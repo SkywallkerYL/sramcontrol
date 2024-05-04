@@ -19,9 +19,9 @@ trait Config {
   val MemReadModule = false 
   val Nwidth = log2Ceil(Nmax)
   val Mwidth = log2Ceil(Mmax)
-  val AXIDATAWIDTH = 256 
+  val AXIDATAWIDTH = 8 
   val AXISTRBWIDTH = 8
-  val AXIADDRWIDTH = 36
+  val AXIADDRWIDTH = 10+5
   val AXILENWIDTH  = 8
   val AXISIZEWIDTH = 3
   val AXIBURSTWIDTH= 2 
@@ -36,15 +36,15 @@ trait Config {
   val lenwidth = log2Ceil(maxlenNum)
 
   val priornum = 8
-  val priorwidth = log2Ceil(priornum-1)
+  val priorwidth = log2Ceil(priornum)
 
   val portnum = 16
-  val portwidth = log2Ceil(portnum-1)
+  val portwidth = log2Ceil(portnum)
 
   val Sramnum = 32 
   val OneSramSize = 1024
   val SramSizeWidth = log2Ceil(OneSramSize)+1
-  val SramIdwidth = log2Ceil(Sramnum-1)
+  val SramIdwidth = log2Ceil(Sramnum)
 
   val ReleaseTimer = 1000
   val ReleaseTimerWidth = log2Ceil(ReleaseTimer-1)
