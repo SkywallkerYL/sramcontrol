@@ -11,9 +11,9 @@ class CrcBlackBox extends BlackBox {
   val io = IO(new Bundle {
     val clk = Input(Clock())
     val rst = Input(Bool())
-    val crcen = Input(Bool())
-    val data = Input(UInt(8.W))
-    val crc = Output(UInt(32.W))
+    val crc_en = Input(Bool())
+    val data_in = Input(UInt(8.W))
+    val crc_out = Output(UInt(32.W))
   })
   override def desiredName = "crc"
 }
@@ -28,9 +28,9 @@ class CrcModel extends Module with Config{
   val crc = Module(new CrcBlackBox)
   crc.io.clk := clock
   crc.io.rst := reset.asBool || io.rst
-  crc.io.crcen := io.crcen
-  crc.io.data := io.data
-  io.crc := crc.io.crc
+  crc.io.crc_en := io.crcen
+  crc.io.data_in := io.data
+  io.crc := crc.io.crc_out
 }
 
 class ramModel(addrwidth:Int, datawidth : Int) extends BlackBox {
