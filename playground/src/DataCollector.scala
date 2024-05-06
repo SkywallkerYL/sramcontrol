@@ -204,14 +204,14 @@ class DataCollector extends Module with Config {
         }
     }
 		//向外部输出该包数据是否有误 发送包尾eop
-	is(sUpdate){
-        //
-        io.Rd.valid := true.B
-        io.Rd.eop := true.B
-        io.Rd.data := crcState
-        when(io.Rd.ready){
-          state := sIdle
-        }
-	}
+	  is(sUpdate){
+          //
+          io.Rd.valid := true.B
+          io.Rd.eop := true.B
+          io.Rd.data := crcState
+          when(io.Rd.ready){
+            state := sIdle
+          }
+	  }
   }
 }

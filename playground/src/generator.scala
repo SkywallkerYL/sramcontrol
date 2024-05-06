@@ -22,8 +22,8 @@ object Elaborate extends App with Config {
   // DataInProcess ScaterCore DataCollector DataScater 
   //SramManagerModel SramControlModel PrioritySelectModel
   //FreeAddrManager Mmu SramManager SramControlCore
-  //SramControl WriteInProcess
-  def top = new WriteInProcess
+  //SramControl WriteInProcess SramTop
+  def top = new SramTop
   val useMFC = false // use MLIR-based firrtl compiler
   val generator = Seq(
     chisel3.stage.ChiselGeneratorAnnotation(() => top),
