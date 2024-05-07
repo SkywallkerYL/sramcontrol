@@ -16,10 +16,10 @@ class SramControlCore extends Module with Config {
     val SramWr = Flipped(new AxiWrite)
     //给Ram的读端口
     val RamRd = (new RamRead(SramSizeWidth-1,DataWidth))
-    val ReadId = Output(UInt(SramIdwidth.W))
+    val ReadId = Output(UInt((SramIdwidth+1).W))
     //给Ram的写端口
     val RamWr = (new RamWrite(SramSizeWidth-1,DataWidth))
-    val WriteId = Output(UInt(SramIdwidth.W))
+    val WriteId = Output(UInt((SramIdwidth+1).W))
   })
   //这只是一个类似Axi的接口，没有完全遵守Axi协议
   //一些默认的输出
@@ -38,8 +38,8 @@ class SramControlCore extends Module with Config {
   io.RamWr.wrAddr := io.SramWr.awaddr(SramSizeWidth-2,0)
   io.RamWr.wrData := io.SramWr.wdata
 
-  io.ReadId := io.SramRd.araddr(AddrWidth-1,AddrWidth-SramIdwidth)
-  io.WriteId := io.SramWr.awaddr(AddrWidth-1,AddrWidth-SramIdwidth)
+  io.ReadId := Sramnum.U //io.SramRd.araddr(AddrWidth-1,AddrWidth-SramIdwidth)
+  io.WriteId := Sramnum.U //io.SramWr.awaddr(AddrWidth-1,AddrWidth-SramIdwidth)
 
   //状态机控制 读状态分配
   val sRIdle :: sRead :: Nil = Enum(2)
@@ -62,6 +62,7 @@ class SramControlCore extends Module with Config {
       }
     }
     is(sRead){
+      io.ReadId := io.SramRd.araddr(AddrWidth-1,AddrWidth-SramIdwidth)
       io.SramRd.rvalid := true.B
       io.SramRd.rdata := io.RamRd.rdData 
       io.RamRd.rden := true.B
@@ -97,6 +98,7 @@ class SramControlCore extends Module with Config {
     }
     is(sWrite){
       io.SramWr.wready := true.B
+      io.WriteId := io.SramWr.awaddr(AddrWidth-1,AddrWidth-SramIdwidth)
       io.RamWr.wrData := io.SramWr.wdata
       io.RamWr.wrAddr := wraddr + wrcount
       when(io.SramWr.wvalid){
@@ -155,10 +157,11 @@ class SramControl extends Module with Config {
   //Sram控制核的读写端口  
   for(i <- 0 until portnum){
     for(j <- 0 until Sramnum){
-      when(sramcontrolcore(i).ReadId === j.U){
+      //这里直接这么写， 如果默认初始都是0,就会出问题，要在core里面改一下默认值
+      when(sramcontrolcore(i).ReadId === j.U ){
         SramGroup(j).read <> sramcontrolcore(i).RamRd
       }
-      when(sramcontrolcore(i).WriteId === j.U){
+      when(sramcontrolcore(i).WriteId === j.U ){
         SramGroup(j).write <> sramcontrolcore(i).RamWr
       }
     }

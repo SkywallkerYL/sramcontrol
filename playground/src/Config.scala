@@ -30,7 +30,7 @@ trait Config {
   val DataWidth = 8
   val AddrWidth = 10+5//1KB * 32 
 
-  val MaxfifoNum = 10
+  val MaxfifoNum = 20
 
   val maxlenNum = 1024
   val lenwidth = log2Ceil(maxlenNum)
@@ -38,7 +38,7 @@ trait Config {
   val priornum = 8
   val priorwidth = log2Ceil(priornum)
 
-  val portnum = 16
+  val portnum = 2
   val portwidth = log2Ceil(portnum)
 
   val Sramnum = 32 

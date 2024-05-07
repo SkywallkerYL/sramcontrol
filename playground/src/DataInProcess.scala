@@ -94,31 +94,32 @@ class DataInProcess extends Module with Config {
         }
     }
     //写入该优先级的数据 
-	is(sWriteAll){
-        ChoosePrior := prior
-		when(fifochoosefullprior === false.B){
-            io.fifowrite.zipWithIndex.foreach { case (fifo, i) =>
+	  is(sWriteAll){
+      ChoosePrior := prior
+		  when(fifochoosefullprior === false.B){
+        io.fifowrite.zipWithIndex.foreach { case (fifo, i) =>
+          when(prior === i.U) {
+            fifo.write := true.B
+            //fifo.din := io.fiforead.dout
+          }
+        }
+        //继续读取数据
+        io.fiforead.read := true.B
+        //更新数据长度
+        lencount := lencount + 1.U
+        when(lencount === DataLen){
+            io.lenfifowrite.zipWithIndex.foreach { case (fifo, i) =>
               when(prior === i.U) {
                 fifo.write := true.B
-                //fifo.din := io.fiforead.dout
+                fifo.din := DataLen
               }
             }
-            //继续读取数据
-            io.fiforead.read := true.B
-            //更新数据长度
-            lencount := lencount + 1.U
-            when(lencount === DataLen){
-                io.lenfifowrite.zipWithIndex.foreach { case (fifo, i) =>
-                  when(prior === i.U) {
-                    fifo.write := true.B
-                    fifo.din := DataLen
-                  }
-                }
-                io.fiforead.read := false.B
-                io.fifowrite.foreach(_.write := false.B)
-                state := sIdle
-            }
+            io.fiforead.read := false.B
+            //当前这个周期也是要写入的
+            //io.fifowrite.foreach(_.write := false.B)
+            state := sIdle
         }
-	}
+      }
+	  }
   }
 }

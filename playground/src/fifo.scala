@@ -145,6 +145,11 @@ class flushramfifo(val size : Int, val width : Int) extends Module {
   mem.io.write.wrAddr := wPointer 
   val dataOut = Wire(UInt(width.W))
   dataOut := mem.io.read.rdData
+  val readFlag = RegNext(io.readFlag)
+  val keepData = RegInit(0.U(width.W))
+  when(readFlag){
+    keepData := dataOut
+  }
   def indexAdd(index : UInt) : UInt = {
       Mux(index === (size - 1).U, 0.U, index + 1.U)
   }
@@ -170,7 +175,7 @@ class flushramfifo(val size : Int, val width : Int) extends Module {
     wPointer := 0.U
     count := 0.U 
   }
-  io.dataOut := dataOut
+  io.dataOut := Mux(readFlag,dataOut,keepData)
   io.full := (size.U === count)
   io.empty := (count === 0.U)
 }

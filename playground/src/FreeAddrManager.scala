@@ -83,7 +83,7 @@ class FreeAddrManager extends Module with Config {
     //向外送的空闲地址就是空闲fifo中的地址
     val WrAddrReg = RegInit(VecInit(Seq.fill(Sramnum)(1024.U(SramSizeWidth.W))))
     val SramWriteFlag = Seq.tabulate(Sramnum)(i => WrAddrReg(i) === 1024.U)
-    val allWrite = SramWriteFlag.reduce(_ || _)
+    val allWrite = SramWriteFlag.reduce(_ && _)
     //释放计时器，当某个Sram的空间达到最大后，计时器开始计时，如果这期间，
     //没有数据写入该Sram，则向外部发送释放该块Sram的信号
     val SramReleaseTimer = RegInit(VecInit(Seq.fill(Sramnum)(0.U(ReleaseTimerWidth.W))))

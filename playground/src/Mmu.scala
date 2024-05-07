@@ -217,6 +217,7 @@ class Mmu extends Module with Config {
     is(sWrite){
       io.SramWr.wvalid := io.WrData.valid && !PackAddrFifo(prior).fifo.fifowrite.full
       io.SramWr.wdata := io.WrData.data
+      io.WrData.ready := io.SramWr.wready
       io.WrAddr.valid := true.B && !PackAddrFifo(prior).fifo.fifowrite.full
       io.WrAddr.addr := FirstAddr
       io.SramWr.awaddr := LocalFirstAddr + WriteLen

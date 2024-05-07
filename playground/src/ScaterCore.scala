@@ -73,7 +73,7 @@ class ScaterCore extends Module with Config {
   //统计fifo的空情况
   val fifo_empty = Wire(Vec(priornum,Bool()))
   for(i <- 0 until priornum){
-    fifo_empty(i) := io.datafiforead(i).empty
+    fifo_empty(i) := io.lenfiforead(i).empty
   }
   //总的fifo的空情况
   val fifo_empty_all = fifo_empty.reduce(_ && _)
@@ -108,7 +108,7 @@ class ScaterCore extends Module with Config {
   	is(sIdle){
       //当有数据包长度fifo不空时，读取数据包长度
       when(!fifo_empty_all){
-        state := sData
+        state := sCrc
         prior := priorMux
 	      DataLen := 0.U
         //读取数据包长度 和 数据
@@ -147,6 +147,7 @@ class ScaterCore extends Module with Config {
         crc.io.crcen := true.B 
         //当达到最大crc长度 或者 datalen 达到总的长度时，结束crc的输入
         when(DataLen === lenin || unpackDataLen === maxcrcnum.U-1.U){
+          DataLen := DataLen
           io.datafiforead.zipWithIndex.foreach { case (fifo, i) =>
             when(prior === i.U) {
               fifo.read := false.B
