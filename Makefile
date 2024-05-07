@@ -20,8 +20,10 @@ commit:
 	git add -f ./ModuleIntro/*.svg
 	git add -f ./UvmVeriTemplate/agents/**/*.sv
 	git add -f ./UvmVeriTemplate/uvm_tb/**/*.sv
-#git add -f ./UvmVeriTemplate/sim/filelist/*.f
-#git add -f ./UvmVeriTemplate/sim/Makefile
+	git add -f ./UvmVeriTemplate/sim/filelist/*.f
+	git add -f ./UvmVeriTemplate/sim/Makefile
+	git add -f ./UvmVeriTemplate/sim/novas.rc 
+	git add -f ./UvmVeriTemplate/sim/novas.conf
 	git commit -m "$(COMMIT_MSG)"
 	git push 
 
