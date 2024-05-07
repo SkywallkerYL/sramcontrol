@@ -16,12 +16,13 @@ commit:
 	git add -f ./csrc/*.h
 	git add -f ./csrc/*.cpp 
 	git add -f Makefile
-	git add -f ./ModuleIntro/*.md 
+	git add -f ./ModuleIntro/*.md
 	git add -f ./ModuleIntro/*.svg
-	git add -f ./UvmVeriTemplate/agents/**/*.sv
-	git add -f ./UvmVeriTemplate/uvm_tb/**/*.sv
-	git add -f ./UvmVeriTemplate/sim/filelist/*.f
-	git add -f ./UvmVeriTemplate/sim/Makefile
+	cd UvmVeriTemplate
+	git add -f ./agents/**/*.sv
+	git add -f ./uvm_tb/**/*.sv
+	git add -f ./sim/filelist/*.f
+	git add -f ./sim/Makefile
 	git commit -m "$(COMMIT_MSG)"
 	git push 
 
