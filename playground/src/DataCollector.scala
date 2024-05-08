@@ -104,7 +104,7 @@ class DataCollector extends Module with Config {
   	is(sIdle){
       //当有数据包长度fifo不空时，读取数据包长度 并且外部有读请求时，开始读取数据
         when(!fifo_empty_all && io.Rd.ready){
-            state := sData
+            state := sAddr
             prior := priorMux
             //读取数据包的个数 和 数据包的长度 和 数据包的地址
             io.unpackedNumFifoRead.zipWithIndex.foreach { case (fifo, i) =>

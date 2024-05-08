@@ -50,10 +50,6 @@ doit:
 	sbt run
 #Makefile for Verilator
 
-#jpeglsencodesimtop jpeglsdecodesimtop
-#tilecompresssimtop tiledecompresssimtop
-#compressARGBtop compressARGBfiletop
-# decompressARGBfiletop JpegIP
 TOP?=JpegIP
 TOPNAME?=$(TOP)
 TOPNAMETEST?=$(TOP)

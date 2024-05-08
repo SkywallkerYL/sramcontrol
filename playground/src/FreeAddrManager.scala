@@ -81,8 +81,8 @@ class FreeAddrManager extends Module with Config {
     //当写入指针未到达1023时，表明该Sram还有空间 可以继续写入
     //当写入指针到达1023时，表明该Sram已经写满，当然实际可能已经读除了，这个时候把Flag拉高
     //向外送的空闲地址就是空闲fifo中的地址
-    val WrAddrReg = RegInit(VecInit(Seq.fill(Sramnum)(1024.U(SramSizeWidth.W))))
-    val SramWriteFlag = Seq.tabulate(Sramnum)(i => WrAddrReg(i) === 1024.U)
+    val WrAddrReg = RegInit(VecInit(Seq.fill(Sramnum)(OneSramSize.U(SramSizeWidth.W))))
+    val SramWriteFlag = Seq.tabulate(Sramnum)(i => WrAddrReg(i) === OneSramSize.U)
     val allWrite = SramWriteFlag.reduce(_ && _)
     //释放计时器，当某个Sram的空间达到最大后，计时器开始计时，如果这期间，
     //没有数据写入该Sram，则向外部发送释放该块Sram的信号
@@ -109,7 +109,7 @@ class FreeAddrManager extends Module with Config {
                 for(i <- 0 until Sramnum){
                     when(SramId === i.U){
                         //将被分配的Sram编号的剩余空间大小设置为1024
-                        SramSizeReg(i) := 1024.U
+                        SramSizeReg(i) := OneSramSize.U
                         //将SramFlagReg对应编号的Sram设置为已经分配
                         SramFlagReg(i) := true.B
                         //写指针复位
@@ -134,7 +134,7 @@ class FreeAddrManager extends Module with Config {
             //当计时器到达最大值时，向Sram管理模块发送释放信号
             when(SramAllocatedFlag){
                 for(i <- 0 until Sramnum){
-                    when(SramSizeReg(i) === 1024.U && SramFlagReg(i)){
+                    when(SramSizeReg(i) === OneSramSize.U && SramFlagReg(i)){
                         SramReleaseTimer(i) := SramReleaseTimer(i) + 1.U
                         when(SramReleaseTimer(i) === ReleaseTimer.U){
                             chooseId := i.U
@@ -156,7 +156,7 @@ class FreeAddrManager extends Module with Config {
                         //释放该Sram
                         SramSizeReg(i) := 0.U
                         SramFlagReg(i) := false.B
-                        WrAddrReg(i) := 1024.U
+                        WrAddrReg(i) := OneSramSize.U
                         SramReleaseTimer(i) := 0.U
                         releaseState := releaseAlloc
                     }
@@ -201,7 +201,7 @@ class FreeAddrManager extends Module with Config {
             //当有分配的Sram还没有写满的时候 分配
             when(SramAllocatedFlag && !allWrite){
                 for(i <- 0 until Sramnum){
-                    when(SramFlagReg(i) && WrAddrReg(i) =/= 1024.U){
+                    when(SramFlagReg(i) && WrAddrReg(i) =/= OneSramSize.U){
                         chooseSramId := i.U
                         freeState := freeFirstWrite
                     }
@@ -219,9 +219,9 @@ class FreeAddrManager extends Module with Config {
             io.FreeAddr.valid := true.B
             for(i <- 0 until Sramnum){
                 when(chooseSramId === i.U){
-                    io.FreeAddr.data := i.U ## WrAddrReg(i)(9,0)
-                    io.MaxLen := 1023.U - WrAddrReg(i)(9,0)
-                    when(WrAddrReg(i) === 1024.U){
+                    io.FreeAddr.data := i.U ## WrAddrReg(i)(readSramWidth-1,0)
+                    io.MaxLen := OneSramSize.U -1.U - WrAddrReg(i)(readSramWidth-1,0)
+                    when(WrAddrReg(i) === OneSramSize.U){
                         io.FreeAddr.valid := false.B 
                         //当前选择的Sram已经写过一边，这个时候有两种情况 
                         //第一是当前Sram有空闲，这个时候进入下一个状态输出空闲地址
@@ -263,16 +263,16 @@ class FreeAddrManager extends Module with Config {
     }
     //读写Sram的空间大小维护 以及空闲地址记录 
     //识别写入id 
-    val WrId = io.WrAddr.data(AddrWidth - 1,10)
+    val WrId = io.WrAddr.data(AddrWidth - 1,readSramWidth)
     //识别读出id
-    val RdId = io.RdAddr.data(AddrWidth - 1,10)
+    val RdId = io.RdAddr.data(AddrWidth - 1,readSramWidth)
     //第一种情况，读写同一个地址
     when(WrId === RdId){
         when(io.WrAddr.valid && io.RdAddr.valid ){
             when(SramFlagReg(WrId)){
                 SramSizeReg(WrId) := SramSizeReg(WrId)
                 //当写入指针还未达到1024时
-                when(WrAddrReg(WrId) =/= 1024.U){
+                when(WrAddrReg(WrId) =/= OneSramSize.U){
                     WrAddrReg(WrId) := WrAddrReg(WrId) + 1.U
                 }
             }
@@ -280,13 +280,13 @@ class FreeAddrManager extends Module with Config {
             //写入数据
             when(SramFlagReg(WrId) && SramSizeReg(WrId) =/= 0.U){
                 SramSizeReg(WrId) := SramSizeReg(WrId) - 1.U
-                when(WrAddrReg(WrId) =/= 1024.U){
+                when(WrAddrReg(WrId) =/= OneSramSize.U){
                     WrAddrReg(WrId) := WrAddrReg(WrId) + 1.U
                 }
             }
         }.elsewhen(io.RdAddr.valid){
             //读出数据
-            when(SramFlagReg(RdId)&& SramSizeReg(RdId) =/= 1024.U){
+            when(SramFlagReg(RdId)&& SramSizeReg(RdId) =/= OneSramSize.U){
                 SramSizeReg(RdId) := SramSizeReg(RdId) + 1.U
             }
         }
@@ -295,13 +295,13 @@ class FreeAddrManager extends Module with Config {
             //写入数据
             when(SramFlagReg(WrId) && SramSizeReg(WrId) =/= 0.U){
                 SramSizeReg(WrId) := SramSizeReg(WrId) - 1.U
-                when(WrAddrReg(WrId) =/= 1024.U){
+                when(WrAddrReg(WrId) =/= OneSramSize.U){
                     WrAddrReg(WrId) := WrAddrReg(WrId) + 1.U
                 }
             }
         }.elsewhen(io.RdAddr.valid){
             //读出数据
-            when(SramFlagReg(RdId)&& SramSizeReg(RdId) =/= 1024.U){
+            when(SramFlagReg(RdId)&& SramSizeReg(RdId) =/= OneSramSize.U){
                 SramSizeReg(RdId) := SramSizeReg(RdId) + 1.U
             }
         }

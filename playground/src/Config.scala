@@ -21,14 +21,14 @@ trait Config {
   val Mwidth = log2Ceil(Mmax)
   val AXIDATAWIDTH = 8 
   val AXISTRBWIDTH = 8
-  val AXIADDRWIDTH = 10+5
+  //val AXIADDRWIDTH = 10+5
   val AXILENWIDTH  = 8
   val AXISIZEWIDTH = 3
   val AXIBURSTWIDTH= 2 
   val AXIIDWIDTH   = 4
   val AXIRESPWIDTH = 2
   val DataWidth = 8
-  val AddrWidth = 10+5//1KB * 32 
+  //val AddrWidth = 10+5//1KB * 32 
 
   val MaxfifoNum = 20
 
@@ -44,8 +44,11 @@ trait Config {
   val Sramnum = 32 
   val OneSramSize = 1024
   val SramSizeWidth = log2Ceil(OneSramSize)+1
+  val readSramWidth = log2Ceil(OneSramSize)
   val SramIdwidth = log2Ceil(Sramnum)
 
+  val AXIADDRWIDTH = readSramWidth + SramIdwidth
+  val AddrWidth = AXIADDRWIDTH
   val ReleaseTimer = 1000
   val ReleaseTimerWidth = log2Ceil(ReleaseTimer-1)
   //crc的最大数据位数

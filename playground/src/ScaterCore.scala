@@ -98,7 +98,7 @@ class ScaterCore extends Module with Config {
   val DataLen = RegInit(0.U(lenwidth.W))
   //记录数据的一个DataLen,统计拆包后的数据包长度//真实的DataLen为DataLen+1
   val unpackDataLen = RegInit(0.U(lenwidth.W))
-  //记录拆包后的数据包个数
+  //记录拆包后的数据包个数  这里就是真实的数据包个数 没有-1存,这样方便读出的时候做判断
   val unpackDataNum = RegInit(0.U(lenwidth.W))
   
   //主状态机
@@ -211,7 +211,7 @@ class ScaterCore extends Module with Config {
       io.unpackedNumFifoWrite.zipWithIndex.foreach { case (fifo, i) =>
         when(prior === i.U) {
           fifo.write := true.B
-          fifo.din := unpackDataNum
+          fifo.din := unpackDataNum //-1.U
         }
       }
       state := sIdle

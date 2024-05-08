@@ -323,7 +323,7 @@ class Mmu extends Module with Config {
       //获取了地址
       io.SramRd.arvalid := true.B
       io.SramRd.araddr := ReadFirstAddr //PackAddrFifo(priorRd).io.fifo.fiforead.dout
-      io.SramRd.arlen := ReadPackNum //PackLenFifo(priorRd).io.fifo.fiforead.dout
+      io.SramRd.arlen := DataLen //PackLenFifo(priorRd).io.fifo.fiforead.dout
       when(io.SramRd.arready){
         //读请求握手成功
         //TotalLen := PackLenFifo(priorRd).io.fifo.fiforead.dout

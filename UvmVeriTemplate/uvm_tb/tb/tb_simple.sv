@@ -78,6 +78,8 @@ initial begin
     clock = 0;
     #0 reset = 1;
     #20 reset = 0;
+    // Write port 0 
+    io_Rd_0_ready = 0; 
     io_Wr_0_sop = 1;
     io_Wr_0_eop = 0;
     io_Wr_0_data = 8'h00;
@@ -88,11 +90,19 @@ initial begin
     io_Wr_0_data = 8'h01;
     #10
     io_Wr_0_data = 8'h02;
-    #100
+    #10
+    io_Wr_0_data = 8'h03;
+    #10
+    io_Wr_0_data = 8'h04;
+    #10
+    io_Wr_0_data = 8'h05;
+    #70
     io_Wr_0_eop = 1;
     #10
     io_Wr_0_valid = 0;
-
+    #200
+    //read port 0
+    io_Rd_0_ready = 1;  
     #10000 $finish;
 end
 
