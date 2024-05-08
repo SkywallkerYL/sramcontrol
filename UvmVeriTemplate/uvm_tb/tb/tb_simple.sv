@@ -112,10 +112,23 @@ initial begin
     io_Wr_0_eop = 1;
     #10
     io_Wr_0_valid = 0;
+    io_Wr_0_eop = 0;
     # 10
     #200
     //read port 0
     io_Rd_0_ready = 1;  
+    #150 
+    //port0 write again
+    io_Wr_0_valid = 1;
+    io_Wr_0_sop = 1;
+    #10
+    io_Wr_0_data = 8'h06;
+    io_Wr_0_sop = 0;
+    #100
+    io_Wr_0_data = 8'h07;
+    io_Wr_0_eop = 1;
+    #10
+    io_Wr_0_valid = 0;
 
     // Write port 1
     io_Wr_1_valid = 1; 

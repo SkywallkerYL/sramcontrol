@@ -56,6 +56,7 @@ class SramControlCore extends Module with Config {
         //提前一个周期读数据 
         io.RamRd.rden := true.B
         rdaddr := io.SramRd.araddr(SramSizeWidth-2,0)
+        io.ReadId := io.SramRd.araddr(AddrWidth-1,AddrWidth-SramIdwidth)
         rdlen := io.SramRd.arlen
         rdcount := 0.U
         rdstate := sRead
@@ -92,6 +93,7 @@ class SramControlCore extends Module with Config {
       io.SramWr.awready := true.B
       when(io.SramWr.awvalid){
         wraddr := io.SramWr.awaddr(SramSizeWidth-2,0)
+        io.WriteId := io.SramWr.awaddr(AddrWidth-1,AddrWidth-SramIdwidth)
         wrcount := 0.U
         wrstate := sWrite
       }

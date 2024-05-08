@@ -236,7 +236,7 @@ class Mmu extends Module with Config {
           //需要申请另外一个空闲地址了 。
           
           //更新分散地址的个数 
-          PackNum := PackNum + 1.U
+            PackNum := PackNum + 1.U
           //记录当前首地址和长度 
           //when(!PackAddrFifo.io.fifo.fifowrite.full && !PackLenFifo.io.fifo.fifowrite.full){
             PackAddrFifo(prior).fifo.fifowrite.din := LocalFirstAddr
