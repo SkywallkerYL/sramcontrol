@@ -77,13 +77,13 @@ class DualSramModel(addrwidth:Int, datawidth : Int, datanum : Int) extends Modul
   io.write.wrValid := io.write.wren
 }
 
-class ramblackbox(addrwidth:Int, datawidth : Int) extends Module with Config{
+class ramblackbox(addrwidth:Int, datawidth : Int,datanum : Int) extends Module with Config{
   val io = IO(new Bundle {
     val read  = Flipped(new RamRead(addrwidth,datawidth) )
     val write = Flipped(new RamWrite(addrwidth,datawidth))
   })
 
-    val ram = Module(new DualSramModel(addrwidth,datawidth,OneSramSize))
+    val ram = Module(new DualSramModel(addrwidth,datawidth,datanum))
     io.read <> ram.io.read
     io.write <> ram.io.write
   

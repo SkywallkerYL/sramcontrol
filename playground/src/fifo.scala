@@ -137,7 +137,7 @@ class flushramfifo(val size : Int, val width : Int) extends Module {
   val wPointer = RegInit(0.U(addrwidth.W))
   val rPointer = RegInit(0.U(addrwidth.W))
   //使用的RAM 模型是不带寄存器的，即这一个周期申请读，下一个周期就能拿到数据
-  val mem = Module(new ramblackbox(addrwidth,width))// Mem(size, UInt(width.W))
+  val mem = Module(new ramblackbox(addrwidth,width,size))// Mem(size, UInt(width.W))
   mem.io.read.rden := io.readFlag
   mem.io.read.rdAddr := rPointer
   mem.io.write.wren := io.writeFlag

@@ -30,7 +30,7 @@ trait Config {
   val DataWidth = 8
   //val AddrWidth = 10+5//1KB * 32 
 
-  val MaxfifoNum = 20
+  val MaxfifoNum = 40
 
   val maxlenNum = 1024
   val lenwidth = log2Ceil(maxlenNum)

@@ -145,7 +145,7 @@ class SramControl extends Module with Config {
   }
   //Read 端口默认输出 
   //例化Sram
-  val SramGroup = VecInit(Seq.fill(Sramnum)(Module(new ramblackbox(SramSizeWidth-1, DataWidth))).map(_.io))
+  val SramGroup = VecInit(Seq.fill(Sramnum)(Module(new ramblackbox(SramSizeWidth-1, DataWidth,OneSramSize))).map(_.io))
   //一些默认的输出
   for(i <- 0 until Sramnum){
     SramGroup(i).read.rden := false.B
