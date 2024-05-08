@@ -242,12 +242,15 @@ class FreeAddrManager extends Module with Config {
         is(freeAddrFromFifo){
             io.FreeAddr.valid := true.B
             io.FreeAddr.data := FreeAddr + AddrOffset
-            io.MaxLen := MaxOffset
+            //要考虑一个问题  就是外部写入的长度可能不会等于最大长度
+            //这个Maxlen要自己内部记录，外部用的时候，自己锁存获取地址的时候的最大长度。
+            io.MaxLen := MaxOffset - AddrOffset
             when(io.WrAddr.valid){
                 //当前地址外部进行了写入，地址偏移+1
                 AddrOffset := AddrOffset + 1.U
                 when(AddrOffset === MaxOffset){
-                    io.FreeAddr.valid := false.B 
+                    //写到最大长度时，这个周期valid还是拉高的。
+                    //io.FreeAddr.valid := false.B 
                     AddrOffset := MaxOffset
                     when(!FreeAddrFifo.io.fifo.fiforead.empty){ 
                         freeState := freeAddrFromFifo
@@ -316,6 +319,7 @@ class FreeAddrManager extends Module with Config {
     val FreeAddrLen = RegInit(0.U(AddrWidth.W))
     switch(addrState){
         //当外部信号的valid拉高时，写入fifo
+        //记录的最大长度其实是真实的长度-1
         is(addrIdle){
             when(io.RdAddr.valid){
                 FreeAddrFirst := io.RdAddr.data

@@ -346,6 +346,7 @@ class Mmu extends Module with Config {
         when(ReadLen === DataLen){
           //如果读完了 ，并且分散后的地址个数不为0
           //则继续申请下一个地址
+          FreeAddrManagerInst.io.RdAddr.last := true.B 
           when(ReadPackNum === PackNumRd){
             //读完了
             rdstate := sRdIdle

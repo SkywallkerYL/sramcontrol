@@ -58,13 +58,13 @@ class SramModel(addrwidth:Int, datawidth : Int, Type : Int = 0) extends Module w
    
   }
 }
-class DualSramModel(addrwidth:Int, datawidth : Int) extends Module with Config{
+class DualSramModel(addrwidth:Int, datawidth : Int, datanum : Int) extends Module with Config{
   val io = IO(new Bundle {
     val read  = Flipped(new RamRead(addrwidth,datawidth) )
     val write = Flipped(new RamWrite(addrwidth,datawidth))
   })
   // 创建同步SRAM，参数为存储单元的数量和数据宽度
-  val num = scala.math.pow(2,addrwidth).toInt - 1
+  val num = datanum //scala.math.pow(2,addrwidth).toInt
   val sram = SyncReadMem(num, UInt(datawidth.W))
 
   // 写入数据
@@ -83,7 +83,7 @@ class ramblackbox(addrwidth:Int, datawidth : Int) extends Module with Config{
     val write = Flipped(new RamWrite(addrwidth,datawidth))
   })
 
-    val ram = Module(new DualSramModel(addrwidth,datawidth))
+    val ram = Module(new DualSramModel(addrwidth,datawidth,OneSramSize))
     io.read <> ram.io.read
     io.write <> ram.io.write
   
