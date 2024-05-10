@@ -30,7 +30,7 @@ trait Config {
   val DataWidth = 8
   //val AddrWidth = 10+5//1KB * 32 
 
-  val MaxfifoNum = 40
+  val MaxfifoNum = 1024
 
   val maxlenNum = 1024
   val lenwidth = log2Ceil(maxlenNum)
@@ -42,7 +42,7 @@ trait Config {
   val portwidth = log2Ceil(portnum)
 
   val Sramnum = 32 
-  val OneSramSize = 16
+  val OneSramSize = 1024
   val SramSizeWidth = log2Ceil(OneSramSize)+1
   val readSramWidth = log2Ceil(OneSramSize)
   val SramIdwidth = log2Ceil(Sramnum)

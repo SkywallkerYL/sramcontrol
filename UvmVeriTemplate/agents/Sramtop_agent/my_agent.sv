@@ -1,7 +1,7 @@
 `ifndef MY_AGENT__SV
 `define MY_AGENT__SV
 
-class my_agent extends uvm_agent ;
+class my_agent extends uvm_agent;
    my_sequencer  sqr;
    my_driver     drv;
    my_monitor    mon;
@@ -27,6 +27,8 @@ function void my_agent::build_phase(uvm_phase phase);
       sqr = my_sequencer::type_id::create("sqr", this);
       drv = my_driver::type_id::create("drv", this);
    end else begin
+      //输出的agent 不需要driver和sequencer 只要moniter,
+      //输入的agent 需要driver和sequencer 不要moniter
       `uvm_info("my_agent", "monitor register", UVM_LOW);
       mon = my_monitor::type_id::create("mon", this);
    end
@@ -36,6 +38,7 @@ endfunction
 function void my_agent::connect_phase(uvm_phase phase);
    super.connect_phase(phase);
    if (is_active == UVM_ACTIVE) begin
+      //driver获取事物
       drv.seq_item_port.connect(sqr.seq_item_export);
       ap = drv.ap;
    end else begin

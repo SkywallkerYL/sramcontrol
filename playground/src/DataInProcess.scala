@@ -82,7 +82,7 @@ class DataInProcess extends Module with Config {
         //对应优先级的fifo未满时，写入数据
         when(fifochoosefullprior === false.B){
             io.fifowrite.zipWithIndex.foreach { case (fifo, i) =>
-              when(prior === i.U) {
+              when(priority === i.U) {
                 fifo.write := true.B
                 //fifo.din := io.fiforead.dout
               }

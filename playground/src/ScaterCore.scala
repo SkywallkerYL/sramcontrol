@@ -89,6 +89,7 @@ class ScaterCore extends Module with Config {
   }
   //记录选择的优先级,防止中途改变
   val prior = RegInit(0.U(priorwidth.W)) 
+  io.ArbiterData.prior := prior
   //当前处理的数据 
   val datain = MuxLookup(prior, io.datafiforead(0).dout, 
   (0 until priornum).map(i => (i.U -> io.datafiforead(i).dout)))
@@ -188,6 +189,8 @@ class ScaterCore extends Module with Config {
             }
             when(DataLen =/= lenin){
               state := sCrc
+              DataLen := DataLen + 1.U 
+              crc.io.rst := true.B
               unpackDataLen := 0.U 
               io.datafiforead.zipWithIndex.foreach { case (fifo, i) =>
                 when(prior === i.U) {

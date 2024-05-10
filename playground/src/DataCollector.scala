@@ -77,6 +77,7 @@ class DataCollector extends Module with Config {
   }
   //记录选择的优先级,防止中途改变
   val prior = RegInit(0.U(priorwidth.W)) 
+  io.ArbiterAddr.prior := prior
   //记录当前数据包的CRC校验状态
   val crcState = RegInit(0.U(DataWidth.W))
 
@@ -190,7 +191,7 @@ class DataCollector extends Module with Config {
               fifo.read := true.B
             }
           }
-          io.unpackedAddrFifoRead.zipWithIndex.foreach { case (fifo, i) =>
+          io.unpackedLenFifoRead.zipWithIndex.foreach { case (fifo, i) =>
             when(prior === i.U) {
               fifo.read := true.B
             }

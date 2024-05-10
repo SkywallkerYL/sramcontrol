@@ -2,7 +2,9 @@
 `define MY_MONITOR__SV
 class my_monitor extends uvm_monitor;
 
-   virtual fiforead_if vif;
+   //monitor 例化2组读端口
+   virtual read_interface r_if_0;
+   virtual read_interface r_if_1;
 
    uvm_analysis_port #(my_transaction)  ap;
    
@@ -13,8 +15,10 @@ class my_monitor extends uvm_monitor;
 
    virtual function void build_phase(uvm_phase phase);
       super.build_phase(phase);
-      if(!uvm_config_db#(virtual fiforead_if)::get(this, "", "vif", vif))
-         `uvm_fatal("my_monitor", "virtual interface must be set for vif!!!")
+      if(!uvm_config_db#(virtual read_interface)::get(this, "", "rif0", r_if_0))
+         `uvm_fatal("my_monitor", "virtual interface must be set for rif0!!!")
+      if(!uvm_config_db#(virtual read_interface)::get(this, "", "rif1", r_if_1))
+         `uvm_fatal("my_monitor", "virtual interface must be set for rif1!!!")
       ap = new("ap", this);
    endfunction
 
@@ -24,10 +28,15 @@ endclass
 
 task my_monitor::main_phase(uvm_phase phase);
    my_transaction tr;
+   #500
    while(1) begin
       tr = new("tr");
       collect_one_pkt(tr);
       //tr.print();
+      //tr中的数据非空，就把数据写到ap端口
+      //if (tr. ) begin
+      //   
+      //end
       ap.write(tr);
    end
 endtask
@@ -35,44 +44,68 @@ endtask
 task my_monitor::collect_one_pkt(my_transaction tr);
    byte unsigned data_q[$];
    byte unsigned data_array[];
-   logic [15:0] data;
+   logic [7:0] data;
    logic readen = 0;
    logic empty = 0;
-   int data_size;
-   
-   while(1) begin
-      @(posedge vif.rclk);
-      if(!vif.empty) break;
-   end
-   
+   int data_size;   
    `uvm_info("my_monitor", "begin to collect one pkt", UVM_LOW);
-   vif.readen <= 1'b1;
-   @(posedge vif.rclk);
-  
-   //while(!vif.empty) begin
-      @(posedge vif.rclk);
-      data_q.push_back(vif.data);
-      $display("monitor data: %d",vif.data);
-      vif.readen <= 1'b0;
-      @(posedge vif.rclk); 
-      
-      data_q.push_back(vif.data);
-      $display("monitor data: %d",vif.data);
-      //@(posedge vif.rclk);
-   //end
+   //Monitor直接从dut读取数据，和model的数据进行比较，如果不一致
+   //从端口0读取数据
+   //等待端口0的数据拉高
+   while (1) begin
+      @(posedge r_if_0.clock);
+      if (r_if_0.valid) begin
+         data = r_if_0.data;
+         data_q.push_back(data);
+         $display("data = %0h",data);
+         break;
+      end
+   end
+   while (1) begin
+      @(posedge r_if_0.clock);
+      if (r_if_0.valid && !r_if_0.eop) begin
+         data = r_if_0.data;
+         data_q.push_back(data);
+         $display("data = %0h",data);
+      end
+      else if(r_if_0.eop && r_if_0.valid) begin
+         break;
+      end
+   end
+
+   //r_if_0.ready <= 1'b0;
    data_size  = data_q.size();   
    data_array = new[data_size];
    for ( int i = 0; i < data_size; i++ ) begin
       data_array[i] = data_q[i];
-      
       //tr.print(data);
    end
+   $display("datasize = %d",data_size);
+   //从端口1读取数据
+   //r_if_1.ready <= 1'b1;
+   //while (1) begin
+   //   @(posedge r_if_1.clock);
+   //   if (r_if_1.valid) begin
+   //      data = r_if_1.data;
+   //      data_q.push_back(data);
+   //      if(r_if_1.eop) begin
+   //         break;
+   //      end
+   //   end
+   //   else begin
+   //      break;
+   //   end
+   //end
    
    //这里使用unpack_bytes函数将data_q中的byte流转换成tr中的各个字段。unpack_bytes函数的输入参数必须是一个动态数组，所
 //以需要先把收集到的、放在data_q中的数据复制到一个动态数组中。由于tr中的pload是一个动态数组，所以需要在调用
 //unpack_bytes之前指定其大小，这样unpack_bytes函数才能正常工作。
    //tr.pload = new[data_size - 18]; //da sa, e_type, crc
-   data_size = tr.unpack_bytes(data_array) / 8; 
+   //data_array非空，把data_array中的数据转换成tr中的各个字段
+   if(data_array.size() != 0) begin
+      tr.unpack_bytes(data_array);
+   end
+   //data_size = tr.unpack_bytes(data_array) / 8; 
    //tr.print();
    `uvm_info("my_monitor", "end collect one pkt", UVM_LOW);
 endtask

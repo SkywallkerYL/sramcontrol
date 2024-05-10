@@ -12,9 +12,11 @@ endclass
 task my_sequencer::main_phase(uvm_phase phase);
    my_sequence seq;
    phase.raise_objection(this);
+   `uvm_info("my_sequencer", "build sequence", UVM_LOW)
    seq = my_sequence::type_id::create("seq");
    seq.starting_phase = phase;
    seq.start(this);
+   //#10000;
    phase.drop_objection(this);
 endtask
 `endif

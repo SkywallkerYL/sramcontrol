@@ -12,17 +12,8 @@
 // //
 // // ---------------------------------------------------------------------------------
 
-+incdir+../agents/Sramtop_agent
-../agents/Sramtop_agent/my_if.sv
-../agents/Sramtop_agent/my_driver.sv
-../agents/Sramtop_agent/my_monitor.sv
-../agents/Sramtop_agent/my_model.sv
-../agents/Sramtop_agent/my_scoreboard.sv
++incdir+../uvm_tb/tests
+//../uvm_tb/env/my_env.sv
 
-../agents/Sramtop_agent/my_agent.sv
-
-
-
-../uvm_tb/env/my_env.sv
 ../uvm_tb/tests/base_test.sv
 
