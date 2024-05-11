@@ -39,17 +39,17 @@ task my_scoreboard::main_phase(uvm_phase phase);
             result = get_actual.compare(tmp_tran);
             if(result) begin 
                `uvm_info("my_scoreboard", "Compare SUCCESSFULLY", UVM_LOW);
-               $display("the expect pkt is");
-               tmp_tran.print();
-               $display("the actual pkt is");
-               get_actual.print();
+               //$display("the expect pkt is");
+               //tmp_tran.print();
+               //$display("the actual pkt is");
+               //get_actual.print();
             end
             else begin
                `uvm_error("my_scoreboard", "Compare FAILED");
                $display("the expect pkt is");
-               tmp_tran.print();
+               tmp_tran.my_print();
                $display("the actual pkt is");
-               get_actual.print();
+               get_actual.my_print();
             end
          end
          else begin

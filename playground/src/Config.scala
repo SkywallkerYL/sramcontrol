@@ -42,7 +42,7 @@ trait Config {
   val portwidth = log2Ceil(portnum)
 
   val Sramnum = 32 
-  val OneSramSize = 1024
+  val OneSramSize = 64
   val SramSizeWidth = log2Ceil(OneSramSize)+1
   val readSramWidth = log2Ceil(OneSramSize)
   val SramIdwidth = log2Ceil(Sramnum)

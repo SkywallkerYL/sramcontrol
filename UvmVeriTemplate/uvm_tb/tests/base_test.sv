@@ -3,8 +3,8 @@
 
 class base_test extends uvm_test;
 
-   my_env         env;
-   
+   my_env         env0;
+   my_env         env1;
    function new(string name = "base_test", uvm_component parent = null);
       super.new(name,parent);
    endfunction
@@ -17,7 +17,8 @@ endclass
 
 function void base_test::build_phase(uvm_phase phase);
    super.build_phase(phase);
-   env  =  my_env::type_id::create("env", this); 
+   env0  =  my_env::type_id::create("env0", this);
+   env1  =  my_env::type_id::create("env1", this); 
    //uvm_config_db#(uvm_object_wrapper)::set(this,
    //                                        "env.i_agt.sqr.main_phase",
    //                                        "default_sequence",

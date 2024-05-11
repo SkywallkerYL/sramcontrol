@@ -29,11 +29,11 @@ module tb_uvm;
     read_interface r_if_1(.clock(clock),.reset(reset));
 
     initial begin
-      uvm_config_db#(virtual write_interface)::set(null, "uvm_test_top.env.i_agt.drv", "wif0", w_if_0);
-      uvm_config_db#(virtual write_interface)::set(null, "uvm_test_top.env.i_agt.drv", "wif1", w_if_1);
+      uvm_config_db#(virtual write_interface)::set(null, "uvm_test_top.env0.i_agt.drv", "wif", w_if_0);
+      uvm_config_db#(virtual write_interface)::set(null, "uvm_test_top.env1.i_agt.drv", "wif", w_if_1);
       //uvm_config_db#(virtual my_if)::set(null, "uvm_test_top.env.i_agt.mon", "vif", input_if);
-      uvm_config_db#(virtual read_interface)::set(null, "uvm_test_top.env.o_agt.mon", "rif0", r_if_0);
-      uvm_config_db#(virtual read_interface)::set(null, "uvm_test_top.env.o_agt.mon", "rif1", r_if_1);
+      uvm_config_db#(virtual read_interface)::set(null, "uvm_test_top.env0.o_agt.mon", "rif", r_if_0);
+      uvm_config_db#(virtual read_interface)::set(null, "uvm_test_top.env1.o_agt.mon", "rif", r_if_1);
     end
 
     initial begin

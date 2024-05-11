@@ -4,7 +4,7 @@ class my_driver extends uvm_driver#(my_transaction);
 
    //driver ,例化2组写端口 
    virtual write_interface w_if_0 ;
-   virtual write_interface w_if_1 ;
+   //virtual write_interface w_if_1 ;
 
    uvm_analysis_port #(my_transaction)  ap;
    `uvm_component_utils(my_driver)
@@ -15,10 +15,10 @@ class my_driver extends uvm_driver#(my_transaction);
    virtual function void build_phase(uvm_phase phase);
       super.build_phase(phase);
       //依次连接两个写端口
-      if(!uvm_config_db#(virtual write_interface)::get(this, "", "wif0", w_if_0))
+      if(!uvm_config_db#(virtual write_interface)::get(this, "", "wif", w_if_0))
          `uvm_fatal("my_driver", "virtual interface must be set for wif0!!!")
-      if(!uvm_config_db#(virtual write_interface)::get(this, "", "wif1", w_if_1))
-         `uvm_fatal("my_driver", "virtual interface must be set for wif1!!!")
+      //if(!uvm_config_db#(virtual write_interface)::get(this, "", "wif1", w_if_1))
+      //   `uvm_fatal("my_driver", "virtual interface must be set for wif1!!!")
       ap = new("ap", this);
    endfunction
 
@@ -84,30 +84,7 @@ task my_driver::drive_one_pkt(my_transaction tr);
    end
    @(posedge w_if_0.clock);
    w_if_0.valid <= 1'b0;
-   //一样的步骤 给端口1送数据
-   for ( int i = 0; i < data_size; i++ ) begin
-      @(posedge w_if_1.clock);
-      w_if_1.valid <= 1'b1;
-      w_if_1.data <= data_q[i]; 
-      if(i == 0) begin
-         w_if_1.sop <= 1'b1;
-      end
-      else begin
-         w_if_1.sop <= 1'b0;
-      end
-      if(i == data_size - 1) begin
-         w_if_1.eop <= 1'b1;
-      end
-      else begin
-         w_if_1.eop <= 1'b0;
-      end
-      if(!w_if_1.ready) begin
-         i = i - 1;
-      end
-      //$display("port 1 write data: %d",data_q[i]);
-   end
-   @(posedge w_if_1.clock);
-   w_if_1.valid <= 1'b0;
+   w_if_0.eop <= 1'b0;
    `uvm_info("my_driver", "end drive one pkt", UVM_LOW);
 endtask
 

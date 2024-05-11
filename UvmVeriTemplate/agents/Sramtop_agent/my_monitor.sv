@@ -4,7 +4,7 @@ class my_monitor extends uvm_monitor;
 
    //monitor 例化2组读端口
    virtual read_interface r_if_0;
-   virtual read_interface r_if_1;
+   //virtual read_interface r_if_1;
 
    uvm_analysis_port #(my_transaction)  ap;
    
@@ -15,10 +15,10 @@ class my_monitor extends uvm_monitor;
 
    virtual function void build_phase(uvm_phase phase);
       super.build_phase(phase);
-      if(!uvm_config_db#(virtual read_interface)::get(this, "", "rif0", r_if_0))
+      if(!uvm_config_db#(virtual read_interface)::get(this, "", "rif", r_if_0))
          `uvm_fatal("my_monitor", "virtual interface must be set for rif0!!!")
-      if(!uvm_config_db#(virtual read_interface)::get(this, "", "rif1", r_if_1))
-         `uvm_fatal("my_monitor", "virtual interface must be set for rif1!!!")
+      //if(!uvm_config_db#(virtual read_interface)::get(this, "", "rif1", r_if_1))
+         //`uvm_fatal("my_monitor", "virtual interface must be set for rif1!!!")
       ap = new("ap", this);
    endfunction
 
@@ -32,7 +32,7 @@ task my_monitor::main_phase(uvm_phase phase);
    while(1) begin
       tr = new("tr");
       collect_one_pkt(tr);
-      //tr.print();
+      //tr.my_print();
       //tr中的数据非空，就把数据写到ap端口
       //if (tr. ) begin
       //   
@@ -57,7 +57,7 @@ task my_monitor::collect_one_pkt(my_transaction tr);
       if (r_if_0.valid) begin
          data = r_if_0.data;
          data_q.push_back(data);
-         $display("data = %0h",data);
+         //$display("data = %0h",data);
          break;
       end
    end
@@ -66,7 +66,7 @@ task my_monitor::collect_one_pkt(my_transaction tr);
       if (r_if_0.valid && !r_if_0.eop) begin
          data = r_if_0.data;
          data_q.push_back(data);
-         $display("data = %0h",data);
+         //$display("data = %0h",data);
       end
       else if(r_if_0.eop && r_if_0.valid) begin
          break;
@@ -80,7 +80,8 @@ task my_monitor::collect_one_pkt(my_transaction tr);
       data_array[i] = data_q[i];
       //tr.print(data);
    end
-   $display("datasize = %d",data_size);
+   //$display("datasize = %d",data_size);
+   `uvm_info("my_monitor", $sformatf("data_size = %0d",data_size), UVM_LOW);
    //从端口1读取数据
    //r_if_1.ready <= 1'b1;
    //while (1) begin
@@ -103,10 +104,17 @@ task my_monitor::collect_one_pkt(my_transaction tr);
    //tr.pload = new[data_size - 18]; //da sa, e_type, crc
    //data_array非空，把data_array中的数据转换成tr中的各个字段
    if(data_array.size() != 0) begin
-      tr.unpack_bytes(data_array);
+      //tr.unpack_bytes(data_array);
+      //直接用这个unpack_bytes函数,好像不行
+      //给tr中的data_queue分配空间
+      tr.data_queue = new[data_size];
+      for(int i = 0; i < data_size; i++) begin
+         tr.data_queue[i] = (data_array[i]);
+      end
+      `uvm_info("my_monitor", "unpack_bytes", UVM_LOW);
    end
    //data_size = tr.unpack_bytes(data_array) / 8; 
-   //tr.print();
+   ///tr.my_print();
    `uvm_info("my_monitor", "end collect one pkt", UVM_LOW);
 endtask
 

@@ -9,7 +9,12 @@ class my_model extends uvm_component;
    extern function new(string name, uvm_component parent);
    extern function void build_phase(uvm_phase phase);
    extern virtual  task main_phase(uvm_phase phase);
-
+   //string str;  // 在类的级别声明变量
+//
+   //function void process_transaction(my_transaction new_tr);
+   //   str = new_tr.convert2string();  // 在方法中使用变量
+   //   $display("%s", str);
+   //endfunction
    `uvm_component_utils(my_model)
 endclass 
 
@@ -32,7 +37,8 @@ task my_model::main_phase(uvm_phase phase);
       new_tr = new("new_tr");
       new_tr.copy(tr);
       `uvm_info("my_model", "get one transaction, copy and print it:", UVM_LOW)
-      new_tr.print();
+      //new_tr.my_print();
+      //process_transaction(new_tr);
       ap.write(new_tr);
    end
 endtask
