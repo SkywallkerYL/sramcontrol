@@ -28,7 +28,7 @@ endclass
 
 task my_monitor::main_phase(uvm_phase phase);
    my_transaction tr;
-   #500
+   #6000
    while(1) begin
       tr = new("tr");
       collect_one_pkt(tr);

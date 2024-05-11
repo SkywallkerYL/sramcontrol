@@ -60,6 +60,26 @@ class my_transaction extends uvm_sequence_item;
          $display("data[%0d] = 0x%0h", i, data_queue[i]);
       end
    endfunction
+   //加了这个函数会导致scoreboard出Bug，即即使两个transaction一致，也不会报成功
+   //还是会说不一样
+   //function bit compare(uvm_object rhs);
+   //   my_transaction rhs_cast;
+   //   if (!$cast(rhs_cast, rhs)) begin
+   //      `uvm_fatal("CAST_ERR", "Failed to cast rhs to my_transaction type")
+   //      return 0;
+   //   end
+   //   // 如果当前对象的data_queue的第一个元素大于rhs的data_queue的第一个元素，返回1
+   //   //优先级是data_queue的第一个元素 中的6到4位
+   //   //int my_pri = (data_queue[0] & 8'h70) >> 4;
+   //   //int rhs_pri = (rhs_cast.data_queue[0] & 8'h70) >> 4;
+   //   if (((data_queue[0] & 8'h70) >> 4) > ((rhs_cast.data_queue[0] & 8'h70) >> 4)) begin
+   //      return 1;
+   //   end
+   //   // 否则返回0
+   //   else begin
+   //      return 0;
+   //   end
+   //endfunction
 endclass
 
 //function void my_print(bit data);
