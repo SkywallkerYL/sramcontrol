@@ -39,8 +39,8 @@ class ScaterCore extends Module with Config {
     val unpackedLenFifoWrite = MixedVec(Seq.fill(priornum)(Flipped(new WriterIO(lenwidth))))
     //拆包后数据包地址写入fifo
     val unpackedAddrFifoWrite = MixedVec(Seq.fill(priornum)(Flipped(new WriterIO(AddrWidth))))
-    
 
+    
   })
   io.datafiforead.foreach(_.read := false.B)
   io.lenfiforead.foreach(_.read := false.B)
@@ -56,6 +56,9 @@ class ScaterCore extends Module with Config {
   io.unpackedNumFifoWrite.foreach(_.din := 0.U)
   io.unpackedLenFifoWrite.foreach(_.din := 0.U)
   io.unpackedAddrFifoWrite.foreach(_.din := 0.U)
+
+  //io.inport.ready := false.B 
+  //io.finish := true.B
   //CRC 模块
   val crc = Module(new CrcModel)
   crc.io.crcen := false.B
@@ -101,7 +104,8 @@ class ScaterCore extends Module with Config {
   val unpackDataLen = RegInit(0.U(lenwidth.W))
   //记录拆包后的数据包个数  这里就是真实的数据包个数 没有-1存,这样方便读出的时候做判断
   val unpackDataNum = RegInit(0.U(lenwidth.W))
-  
+
+  //记录传递当前数据的
   //主状态机
   val sIdle :: sCrc :: sData :: sUpdate :: Nil = Enum(4)
   val state = RegInit(sIdle)

@@ -22,7 +22,7 @@ object Elaborate extends App with Config {
   // DataInProcess ScaterCore DataCollector DataScater 
   //SramManagerModel SramControlModel PrioritySelectModel
   //FreeAddrManager Mmu SramManager SramControlCore
-  //SramControl WriteInProcess SramTop
+  //SramControl WriteInProcess SramTop ArbiterBridge
   def top = new SramTop
   val useMFC = false // use MLIR-based firrtl compiler
   val generator = Seq(

@@ -24,11 +24,24 @@ class SramTop extends Module with Config {
   for(i <- 0 until portnum){
     dataScatercollector(i).Rd <> io.Rd(i)
   }
-  //与写入端口相连
+  //转接桥模块
+  val arbiterbridge = Module(new ArbiterBridge)
   for(i <- 0 until portnum){
-    dataScatercollector(i).Bridgefiforead <> writein.io.datafiforead(i)
-    dataScatercollector(i).Bridgelenfiforead <> writein.io.lenfiforead(i)
+    arbiterbridge.io.infiforead(i) <> writein.io.datafiforead(i)
+    arbiterbridge.io.inlenfiforead(i) <> writein.io.lenfiforead(i)
+    arbiterbridge.io.inportid(i) <> writein.io.destport(i)
+    writein.io.finish(i) := arbiterbridge.io.infinish(i)
+
+    dataScatercollector(i).Bridgefiforead <> arbiterbridge.io.destfiforead(i)
+    dataScatercollector(i).Bridgelenfiforead <> arbiterbridge.io.destlenfiforead(i)
+    arbiterbridge.io.destportid(i) := dataScatercollector(i).sourceport
+    arbiterbridge.io.destidready(i) := dataScatercollector(i).inport.ready
+    dataScatercollector(i).inport.valid := arbiterbridge.io.destidvalid(i)
+    dataScatercollector(i).inport.last := false.B 
+    dataScatercollector(i).inport.data := arbiterbridge.io.toscaterport(i)
+    arbiterbridge.io.destfinish(i) := dataScatercollector(i).finish
   }
+
   //16个MMU 
   val mmu = VecInit(Seq.fill(portnum)(Module(new Mmu)).map(_.io))
   //与数据分散模块相连
@@ -40,7 +53,7 @@ class SramTop extends Module with Config {
     //mmu(i).WrData.eop   := dataScatercollector(i).WrData.eop
     //mmu(i).WrData.prior := dataScatercollector(i).WrData.prior
     //dataScatercollector(i).WrData.ready := mmu(i).WrData.ready 
-    //Flipped的要写在前面
+    //Flipped
     dataScatercollector(i).WrData <>  mmu(i).WrData 
     mmu(i).WrAddr <> dataScatercollector(i).WrAddr
     mmu(i).RdData <> dataScatercollector(i).RdData

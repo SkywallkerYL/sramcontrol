@@ -23,6 +23,11 @@ class DataInProcess extends Module with Config {
 	  val update = Output(Bool())
     val prior = Output(UInt(priorwidth.W))
     val DataLen = Output(UInt(lenwidth.W))
+
+    //处理数据包的端口握手
+    val inport = Flipped(new AxiStream(portwidth))
+    val sourceport = Output(UInt(portwidth.W))
+    val finish = Output(Bool())
   })
     //一些默认的输出
     io.update := false.B
@@ -33,6 +38,9 @@ class DataInProcess extends Module with Config {
     io.lenfifowrite.foreach(_.write := false.B)
     io.fifowrite.foreach(_.din := io.fiforead.dout)
     io.lenfifowrite.foreach(_.din := io.lenfiforead.dout)
+
+    io.inport.ready := false.B
+    io.finish := false.B
     //记录选择的优先级
     val prior = RegInit(0.U(priorwidth.W))      
     //数据的优先级
@@ -57,13 +65,24 @@ class DataInProcess extends Module with Config {
     io.lenfifowrite.foreach(_.din := DataLen)
     val lencount = RegInit(0.U(lenwidth.W))
     io.prior := prior
-    
+    //锁存当前的输入端口Id 
+    val portid = RegInit(0.U(portwidth.W))
+    io.sourceport := portid
     //主状态机
-    val sIdle :: sgetfirstData :: sWriteAll :: Nil = Enum(3)
+    val sIdle :: sPortShake :: sgetfirstData :: sWriteAll :: Nil = Enum(4)
     val state = RegInit(sIdle)
     switch(state){
     is(sIdle){
+        //握手成功后，开始读取数据
+        when(io.inport.valid){
+          state := sPortShake
+          portid := io.inport.data
+          
+        }
+    }
+    is(sPortShake){
         //当有数据包长度fifo不空时，读取数据包长度 和数据 ，提取优先级
+        io.inport.ready := true.B
         when(!fifoempty){
           state := sgetfirstData
           prior := priority
@@ -108,6 +127,7 @@ class DataInProcess extends Module with Config {
         //更新数据长度
         lencount := lencount + 1.U
         when(lencount === DataLen){
+            io.finish := true.B
             io.lenfifowrite.zipWithIndex.foreach { case (fifo, i) =>
               when(prior === i.U) {
                 fifo.write := true.B

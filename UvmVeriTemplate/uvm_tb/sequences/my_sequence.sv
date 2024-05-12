@@ -47,15 +47,15 @@ class my_sequence extends uvm_sequence #(my_transaction);
       
       //byte unsigned data_q[];
       
-      repeat(2) begin
+      repeat(`itemnum) begin
          //约束数据包的长度
          `uvm_do_with(m_trans,{
             m_trans.data_queue.size() inside {[64:300]};
       })
-         #300;
+         //#300;
       end
 
-      #10000
+      #`SimulationTime
       if(starting_phase != null) 
          starting_phase.drop_objection(this);
       else 

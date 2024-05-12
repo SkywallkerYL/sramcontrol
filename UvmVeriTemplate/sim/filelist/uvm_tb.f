@@ -14,6 +14,7 @@
 
 //+incdir+../uvm_tb/env
 +incdir+../uvm_tb/sequences
+../agents/Sramtop_agent/my_macro.sv
 //+incdir+../uvm_tb/virtual_sequences
 //+incdir+../uvm_tb/tests
 

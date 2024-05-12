@@ -76,7 +76,7 @@ task my_model::main_phase(uvm_phase phase);
       //queue.sort();  // 对队列进行排序，优先级最高的事务在前面
       mysort();
       //`uvm_info("my_model", "get one transaction, copy and sort it:", UVM_LOW)
-      if (queue.size() >=2 ) begin
+      if (queue.size() >=`itemnum ) begin
          break;  // 将优先级最高的事务发送到分析端口
       end
    end

@@ -13,6 +13,7 @@
 // // ---------------------------------------------------------------------------------
 
 +incdir+../agents/Sramtop_agent
+../agents/Sramtop_agent/my_macro.sv
 ../agents/Sramtop_agent/my_if.sv
 ../agents/Sramtop_agent/my_driver.sv
 ../agents/Sramtop_agent/my_monitor.sv

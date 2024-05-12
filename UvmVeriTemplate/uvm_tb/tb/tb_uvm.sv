@@ -78,11 +78,14 @@ module tb_uvm;
         w_if_1.sop = 0;
         w_if_1.eop = 0;
 
-        r_if_0.ready = 1;
-        r_if_1.ready = 1;
+        r_if_0.ready = 0;
+        r_if_1.ready = 0;
       reset = 1;
       #30
       reset = 0;
+      #`readTime
+        r_if_0.ready = 1;
+        r_if_1.ready = 1;
     end
      
      //Sram 读写顶层

@@ -28,7 +28,7 @@ endclass
 
 task my_monitor::main_phase(uvm_phase phase);
    my_transaction tr;
-   #6000
+   //#10000
    while(1) begin
       tr = new("tr");
       collect_one_pkt(tr);
@@ -54,7 +54,7 @@ task my_monitor::collect_one_pkt(my_transaction tr);
    //等待端口0的数据拉高
    while (1) begin
       @(posedge r_if_0.clock);
-      if (r_if_0.valid) begin
+      if (r_if_0.valid && r_if_0.ready) begin
          data = r_if_0.data;
          data_q.push_back(data);
          //$display("data = %0h",data);
@@ -63,12 +63,12 @@ task my_monitor::collect_one_pkt(my_transaction tr);
    end
    while (1) begin
       @(posedge r_if_0.clock);
-      if (r_if_0.valid && !r_if_0.eop) begin
+      if (r_if_0.valid && r_if_0.ready && !r_if_0.eop) begin
          data = r_if_0.data;
          data_q.push_back(data);
          //$display("data = %0h",data);
       end
-      else if(r_if_0.eop && r_if_0.valid) begin
+      else if(r_if_0.eop && r_if_0.valid && r_if_0.ready) begin
          break;
       end
    end

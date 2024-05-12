@@ -46,6 +46,10 @@ class DataScater extends Module with Config {
     //val BridgeData = new DataChannel(DataWidth)
     val Bridgefiforead    = Flipped(new ReaderIO(DataWidth))
     val Bridgelenfiforead = Flipped(new ReaderIO(lenwidth))
+    val inport = Flipped(new AxiStream(portwidth))
+    val sourceport = Output(UInt(portwidth.W))
+    val finish = Output(Bool())
+
 
     //与MMU模块通信 写数据通道
     val WrData = Flipped(new DataChannel(DataWidth))
@@ -73,6 +77,9 @@ class DataScater extends Module with Config {
     val InProcess = (Module(new DataInProcess)) 
     InProcess.io.fiforead <> io.Bridgefiforead
     InProcess.io.lenfiforead <> io.Bridgelenfiforead
+    InProcess.io.inport <> io.inport
+    io.sourceport := InProcess.io.sourceport
+    io.finish := InProcess.io.finish
     //依次连接每一个fifo
     for(i <- 0 until priornum){
       InProcess.io.fifowrite(i) <> DataFifo(i).io.fifo.fifowrite

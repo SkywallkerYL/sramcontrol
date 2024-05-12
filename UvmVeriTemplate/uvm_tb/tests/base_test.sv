@@ -23,6 +23,16 @@ function void base_test::build_phase(uvm_phase phase);
    //                                        "env.i_agt.sqr.main_phase",
    //                                        "default_sequence",
    //                                         my_sequence::type_id::get());
+   // 设置两个default_sequence
+   //不在sequencer内部声明sequence，而是在test中声明sequence
+   uvm_config_db#(uvm_object_wrapper)::set(this,
+                                           "env0.i_agt.sqr.main_phase",
+                                           "default_sequence",
+                                           my_sequence::type_id::get());
+   uvm_config_db#(uvm_object_wrapper)::set(this,
+                                             "env1.i_agt.sqr.main_phase",
+                                             "default_sequence",
+                                             my_sequence::type_id::get());
 endfunction
 
 function void base_test::report_phase(uvm_phase phase);

@@ -16,7 +16,7 @@ ArbiterBridge 模块
 
 ****************/
 
-class ArbiterBridge extends BlackBox with Config {
+class ArbiterBridgeV extends BlackBox with Config {
   val io = IO(new Bundle {
     //16个端口的数据读
     val fifoRead = MixedVec(Seq.fill(portnum)(Flipped(new ReaderIO(DataWidth))))
@@ -34,7 +34,7 @@ class ArbiterBridgeModel extends Module with Config{
     val LenfifoRead = MixedVec(Seq.fill(portnum)(Flipped(new ReaderIO(lenwidth))))
     val Data2Scater = MixedVec(Seq.fill(portnum)(Flipped(new DataChannel(DataWidth))))
   })
-    val arbiter = Module(new ArbiterBridge)
+    val arbiter = Module(new ArbiterBridgeV)
     io <> arbiter.io
     //for(i <- 0 until portnum){
     //  io.fifoRead(i).read := arbiter.io.fifoRead(i).read

@@ -78,16 +78,23 @@ class SramManager extends Module with Config {
         }
       }
       is(sAlloc){
-        for(i <- 0 until portnum){
-          when(Reqselect === i.U){
-            io.SramReq(i).valid := true.B
-            io.SramReq(i).data := minSramId
-            when(io.SramReq(i).ready){
-              SramReg := SramReg & (~minSram)
-              stateReq := sIdle
+        //这里有个bug, 没有判空,即所有Sram都写满了
+        when(SramReg =/= 0.U){
+          for(i <- 0 until portnum){
+            when(Reqselect === i.U){
+              io.SramReq(i).valid := true.B
+              io.SramReq(i).data := minSramId
+              when(io.SramReq(i).ready){
+                SramReg := SramReg & (~minSram)
+                stateReq := sIdle
+              }
             }
           }
+        }.otherwise{
+          stateReq := sIdle
         }
+        
+
       }
       is(sRelease){
         for(i <- 0 until portnum){
