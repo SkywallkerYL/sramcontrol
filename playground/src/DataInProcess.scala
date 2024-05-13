@@ -26,7 +26,7 @@ class DataInProcess extends Module with Config {
 
     //处理数据包的端口握手
     val inport = Flipped(new AxiStream(portwidth))
-    val sourceport = Output(UInt(portwidth.W))
+    val sourceport = new AxiStream(portwidth)
     val finish = Output(Bool())
   })
     //一些默认的输出
@@ -40,6 +40,8 @@ class DataInProcess extends Module with Config {
     io.lenfifowrite.foreach(_.din := io.lenfiforead.dout)
 
     io.inport.ready := false.B
+    io.sourceport.valid := false.B
+    io.sourceport.last := false.B
     io.finish := false.B
     //记录选择的优先级
     val prior = RegInit(0.U(priorwidth.W))      
@@ -67,9 +69,9 @@ class DataInProcess extends Module with Config {
     io.prior := prior
     //锁存当前的输入端口Id 
     val portid = RegInit(0.U(portwidth.W))
-    io.sourceport := portid
+    io.sourceport.data := portid
     //主状态机
-    val sIdle :: sPortShake :: sgetfirstData :: sWriteAll :: Nil = Enum(4)
+    val sIdle :: sPortShake :: sWaitRead :: sgetfirstData :: sWriteAll :: Nil = Enum(5)
     val state = RegInit(sIdle)
     switch(state){
     is(sIdle){
@@ -83,6 +85,16 @@ class DataInProcess extends Module with Config {
     is(sPortShake){
         //当有数据包长度fifo不空时，读取数据包长度 和数据 ，提取优先级
         io.inport.ready := true.B
+        io.sourceport.valid := true.B
+        when(io.inport.valid && io.inport.data === portid){
+          state := sWaitRead
+        }.otherwise{
+          state := sIdle
+        }
+    }
+    is(sWaitRead){
+        //当有数据包长度fifo不空时，读取数据包长度 和数据 ，提取优先级
+        io.sourceport.valid := true.B
         when(!fifoempty){
           state := sgetfirstData
           prior := priority
@@ -94,6 +106,7 @@ class DataInProcess extends Module with Config {
         //使用的fifo模型都会保持数据，所以只需要读取一次
         //即fiforead的读取没有拉高时，仍然会继续输出上一次的数据
         //获取优先级和数据长度
+        io.sourceport.valid := true.B
         DataLen := io.lenfiforead.dout
         //去下一个态的时候，第一个数据已经写入了，所以lencount = 1
         lencount := 1.U
@@ -114,6 +127,7 @@ class DataInProcess extends Module with Config {
     }
     //写入该优先级的数据 
 	  is(sWriteAll){
+      io.sourceport.valid := true.B
       ChoosePrior := prior
 		  when(fifochoosefullprior === false.B){
         io.fifowrite.zipWithIndex.foreach { case (fifo, i) =>

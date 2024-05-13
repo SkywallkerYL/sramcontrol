@@ -28,71 +28,77 @@ class ArbiterBridge extends Module with Config {
     //16个读入端口的lenfiforead输出
     val inlenfiforead = MixedVec(Seq.fill(portnum)(Flipped(new ReaderIO(lenwidth))))
     //16个读入端口当前输出的目的端口id 
-    val inportid = MixedVec(Seq.fill(portnum)(Flipped(new AxiStream(portwidth))))
+    val source2destportidIn = MixedVec(Seq.fill(portnum)(Flipped(new AxiStream(portwidth))))
     val infinish = MixedVec(Seq.fill(portnum)(Output(Bool())))
     //16个目的端口fifo的读入
     val destfiforead = MixedVec(Seq.fill(portnum)((new ReaderIO(DataWidth))))
     //16个目的端口lenfifo的读入
     val destlenfiforead = MixedVec(Seq.fill(portnum)((new ReaderIO(lenwidth))))
 
-    //16个目的端口的当前处理的源端口id
-    val destportid = MixedVec(Seq.fill(portnum)(Input(UInt(portwidth.W))))
-    val destidready = MixedVec(Seq.fill(portnum)(Input(Bool())))
-    val destidvalid = MixedVec(Seq.fill(portnum)(Output(Bool())))
+    //16个目的端口的当前处理的源端口id 即DataInProcess 下的sourceport
+    val dest2sourceportid = MixedVec(Seq.fill(portnum)(Flipped(new AxiStream(portwidth))))
+    //16个目的端口接受的源端口id 即DataInProcess 下的inport
+    val source2destportidOut = MixedVec(Seq.fill(portnum)((new AxiStream(portwidth))))
+    //16个目的端口的finish
     val destfinish = MixedVec(Seq.fill(portnum)(Input(Bool())))
-    val toscaterport = MixedVec(Seq.fill(portnum)(Output(UInt(portwidth.W))))
   })
-  for(i <- 0 until portnum){
-    io.toscaterport(i) := 0.U
-    for (j <- 0 until portnum){
-      when(io.inportid(j).data === i.U){
-        io.toscaterport(i) := j.U
-      }
-    }
-  }
-
   //根据destportid 将输入输出的fifo互联起
   for(i <- 0 until portnum){
-    io.destfiforead(i) <> io.infiforead(i)
-    io.destlenfiforead(i) <> io.inlenfiforead(i)
+    io.destfiforead(i).dout     := 0.U
+    io.destfiforead(i).empty    := false.B
+    io.destlenfiforead(i).dout  := 0.U
+    io.destlenfiforead(i).empty := false.B
+    io.dest2sourceportid(i).ready := true.B
     for (j <- 0 until portnum){
-      when(io.destportid(i) === j.U){
+      //当目的端口握手成功后,发送valid数据,将
+      //将目的端口的fifo输入与源端口的fifo输出连接
+      when(io.dest2sourceportid(i).data === j.U && io.dest2sourceportid(i).valid){
         //这里要对输入输出分别进行操作 这样才能保证判断的正确性,进根据
         //改端口对应的id来判断
-        io.destfiforead(i).dout := io.infiforead(j).dout
-        io.destfiforead(i).empty := io.infiforead(j).empty
-        io.destlenfiforead(i).dout := io.inlenfiforead(j).dout
+        io.destfiforead(i).dout     := io.infiforead(j).dout
+        io.destfiforead(i).empty    := io.infiforead(j).empty
+        io.destlenfiforead(i).dout  := io.inlenfiforead(j).dout
         io.destlenfiforead(i).empty := io.inlenfiforead(j).empty
       }
     }
   }
   for(j <- 0 until portnum){
+    io.infiforead(j).read     := false.B
+    io.inlenfiforead(j).read  := false.B
+    io.infinish(j) := false.B
     for ( i<- 0 until portnum){
-      when(io.destportid(i) === j.U){
+      //互联的原理和上边一致,目的端口给出的源Id和当前的Id相等时,并且valid有效
+      //将fifo读使能进行互联
+      when(io.dest2sourceportid(i).data === j.U && io.dest2sourceportid(i).valid){
         //这里要对输入输出分别进行操作
-        io.infiforead(j).read := io.destfiforead(i).read
-        io.inlenfiforead(j).read := io.destlenfiforead(i).read
+        io.infiforead(j).read     := io.destfiforead(i).read
+        io.inlenfiforead(j).read  := io.destlenfiforead(i).read
+        io.infinish(j) := io.destfinish(i)
       }
     }
   }
-  //对inport id 的端口进行互联
-  for (i <- 0 until portnum){
-    io.inportid(i).ready := false.B
-    io.infinish(i) := false.B
-    for (j <- 0 until portnum){
-      when(io.destportid(j) === i.U){
-        io.inportid(i).ready := io.destidready(j)
-        io.infinish(i) := io.destfinish(j)
+  //对source2destportidOut的端口进行互联
+  for(i <- 0 until portnum){
+    io.source2destportidOut(i).valid := false.B
+    io.source2destportidOut(i).data := 0.U
+    io.source2destportidOut(i).last := false.B
+    for(j <- 0 until portnum){
+      //当源端口有Valid,并且源端口给出的Id和当前的Id相等时,将输出的valid和data连接
+      //但是过去的data,要改成源端口的Id
+      when(io.source2destportidIn(j).data === i.U && io.source2destportidIn(j).valid){
+        io.source2destportidOut(i).valid := io.source2destportidIn(j).valid
+        io.source2destportidOut(i).data := j.U
       }
     }
   }
-  //对destportid的端口进行互联
+
+  //对source2destportidIn 的端口进行互联 
+  //对source的握手进行操作
   for (i <- 0 until portnum){
-    io.destidvalid(i) := false.B
+    io.source2destportidIn(i).ready := false.B 
     for (j <- 0 until portnum){
-      when(io.inportid(j).data === j.U){
-        io.destidvalid(i) := io.inportid(j).valid
-        
+      when(io.dest2sourceportid(j).data === i.U && io.dest2sourceportid(j).valid){
+        io.source2destportidIn(i).ready := io.source2destportidOut(j).ready
       }
     }
   }

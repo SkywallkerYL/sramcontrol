@@ -327,7 +327,9 @@ class FreeAddrManager extends Module with Config {
                 //RdAddr.last 为true时，如果记0,会少一个
                 FreeAddrLen := 1.U
                 when(io.RdAddr.last){
-                    FreeAddrFifo.io.fifo.fifowrite.din := FreeAddrFirst
+                    //之前这里写成FreeAddrFirst 导致出错了
+                    //现在改成了io.RdAddr.data 
+                    FreeAddrFifo.io.fifo.fifowrite.din := io.RdAddr.data
                     FreeAddrFifo.io.fifo.fifowrite.write := true.B
                     MaxLenFifo.io.fifo.fifowrite.din := 0.U
                     MaxLenFifo.io.fifo.fifowrite.write := true.B

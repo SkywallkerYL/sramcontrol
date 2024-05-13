@@ -104,6 +104,7 @@ class WriteInCore extends Module with Config {
       }
       is(sSend){
         //数据读完后,进入idle状态
+        io.destport.valid := true.B
         datafifo.io.fifo.fiforead.read := io.datafiforead.read
         lenfifo.io.fifo.fiforead.read := io.lenfiforead.read
         when(io.finish){

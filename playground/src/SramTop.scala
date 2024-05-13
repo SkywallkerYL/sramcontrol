@@ -29,16 +29,13 @@ class SramTop extends Module with Config {
   for(i <- 0 until portnum){
     arbiterbridge.io.infiforead(i) <> writein.io.datafiforead(i)
     arbiterbridge.io.inlenfiforead(i) <> writein.io.lenfiforead(i)
-    arbiterbridge.io.inportid(i) <> writein.io.destport(i)
+    arbiterbridge.io.source2destportidIn(i) <> writein.io.destport(i)
     writein.io.finish(i) := arbiterbridge.io.infinish(i)
 
     dataScatercollector(i).Bridgefiforead <> arbiterbridge.io.destfiforead(i)
     dataScatercollector(i).Bridgelenfiforead <> arbiterbridge.io.destlenfiforead(i)
-    arbiterbridge.io.destportid(i) := dataScatercollector(i).sourceport
-    arbiterbridge.io.destidready(i) := dataScatercollector(i).inport.ready
-    dataScatercollector(i).inport.valid := arbiterbridge.io.destidvalid(i)
-    dataScatercollector(i).inport.last := false.B 
-    dataScatercollector(i).inport.data := arbiterbridge.io.toscaterport(i)
+    arbiterbridge.io.dest2sourceportid(i) <> dataScatercollector(i).sourceport
+    arbiterbridge.io.source2destportidOut(i) <> dataScatercollector(i).inport
     arbiterbridge.io.destfinish(i) := dataScatercollector(i).finish
   }
 
