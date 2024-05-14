@@ -16,8 +16,8 @@ UVM_HOME	= /home/yangli/uvm/uvm
 
 include /home/yangli/uvm/uvm/examples/Makefile.vcs
 #TESTNAME = wr_with_reset_test
-#TESTNAME = write_fast_test
-TESTNAME = base_test
+#TESTNAME = base_test    allport_test
+TESTNAME = allport_test
 TIME = `date +%y%m%d%H`
 SEED = $(TIME)
 # -l ./top_lib/$(TESTNAME)_simv/vcs_compile_$(TESTNAME).log

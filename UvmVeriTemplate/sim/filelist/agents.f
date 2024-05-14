@@ -25,5 +25,5 @@
 
 
 ../uvm_tb/env/my_env.sv
-../uvm_tb/tests/base_test.sv
-
+//../uvm_tb/tests/base_test.sv
+../uvm_tb/tests/allport_test.sv

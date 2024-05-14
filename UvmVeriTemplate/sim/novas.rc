@@ -226,8 +226,8 @@ Selection-LineWidth = 1
 Orientation = Landscape
 [Form]
 version = Verdi3_L-2016.06-1
-wave/unknownSave.fm = 100,100,794,272
 openfile.fm = 100,100,723,524
+wave/unknownSave.fm = 100,100,794,272
 wave/saveSig.fm = 100,100,723,524
 [General]
 autoSaveSession = FALSE
@@ -455,7 +455,7 @@ bSVTBMode = TRUE
 SimMode = TRUE
 interactiveDebugging = TRUE
 KeepBreakPoints = FALSE
-vcs_svPath = /home/yangli/SramControl/ChiselEnv/UvmVeriTemplate/sim/top_lib/base_test_simv
+vcs_svPath = /home/yangli/SramControl/ChiselEnv/UvmVeriTemplate/sim/top_lib/allport_test_simv
 [SimulationPlus2]
 eventDumpUnfinish = FALSE
 [Source]
@@ -663,7 +663,7 @@ scope_to_save_with_macro
 open_file_dir
 open_rc_file_dir
 getSignalForm = 0 0 800 479 100 30 100 30
-viewPort = 0 28 1846 717 671 89
+viewPort = 0 28 1846 785 671 89
 signalSpacing = 5
 digitalSignalHeight = 15
 analogSignalHeight = 98
@@ -911,8 +911,9 @@ curveWindow_Drag&Drop_Mode = TRUE
 hspiceIncOpenMode = TRUE
 pcSelectMode = TRUE
 hierarchyDelimiter = /
-RecentFile1 = "\"/home/yangli/SramControl/ChiselEnv/UvmVeriTemplate/sim/base_test.fsdb\""
-RecentFile2 = "\"/home/yangli/SramControl/ChiselEnv/UvmVeriTemplate/sim/Test.fsdb\""
+RecentFile1 = "\"/home/yangli/SramControl/ChiselEnv/UvmVeriTemplate/sim/allport_test.fsdb\""
+RecentFile2 = "\"/home/yangli/SramControl/ChiselEnv/UvmVeriTemplate/sim/base_test.fsdb\""
+RecentFile3 = "\"/home/yangli/SramControl/ChiselEnv/UvmVeriTemplate/sim/Test.fsdb\""
 open_file_time_range = FALSE
 value_window_aligment = Right
 signal_window_alignment = Auto
@@ -1399,7 +1400,7 @@ AddImportArgument = FALSE
 LineBreakWithScope = TRUE
 StopAfterCompileOption = -s
 [wave.0]
-viewPort = 0 28 1846 717 671 89
+viewPort = 0 28 1846 785 671 89
 [wave.1]
 viewPort = 127 219 960 332 100 65
 [wave.2]

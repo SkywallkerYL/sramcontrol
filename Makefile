@@ -16,8 +16,8 @@ commit:
 	git add -f ./csrc/*.h
 	git add -f ./csrc/*.cpp 
 	git add -f Makefile
-	git add -f ./ModuleIntro/*.md
-	git add -f ./ModuleIntro/*.svg
+#git add -f ./ModuleIntro/*.md
+#git add -f ./ModuleIntro/*.svg
 	git add -f ./UvmVeriTemplate/agents/**/*.sv
 	git add -f ./UvmVeriTemplate/uvm_tb/**/*.sv
 	git add -f ./UvmVeriTemplate/sim/filelist/*.f

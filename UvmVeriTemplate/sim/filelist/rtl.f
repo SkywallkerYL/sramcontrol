@@ -19,5 +19,6 @@
 //../rtl/sync_w2r.v
 //../rtl/sync_r2w.v
 //../rtl/asyn_fifo.v
+//../agents/Sramtop_agent/my_macro.sv
 ../../build/SramTop.v
 ../../vsrc/crc.v

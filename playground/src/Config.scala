@@ -38,11 +38,11 @@ trait Config {
   val priornum = 8
   val priorwidth = log2Ceil(priornum)
 
-  val portnum = 2
+  val portnum = 16
   val portwidth = log2Ceil(portnum)
 
   val Sramnum = 32 
-  val OneSramSize = 64
+  val OneSramSize = 1024
   val SramSizeWidth = log2Ceil(OneSramSize)+1
   val readSramWidth = log2Ceil(OneSramSize)
   val SramIdwidth = log2Ceil(Sramnum)

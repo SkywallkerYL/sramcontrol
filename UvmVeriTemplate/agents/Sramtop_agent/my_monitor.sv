@@ -69,6 +69,10 @@ task my_monitor::collect_one_pkt(my_transaction tr);
          //$display("data = %0h",data);
       end
       else if(r_if_0.eop && r_if_0.valid && r_if_0.ready) begin
+         //进行一个assert eop拉高时 data必须是0
+         if(r_if_0.data != 0) begin
+            `uvm_fatal("my_monitor", "eop is high, but data is not 0");
+         end
          break;
       end
    end

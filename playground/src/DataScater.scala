@@ -5,7 +5,7 @@ import chisel3.util._
 import chisel3.experimental._
 
 /******
-吼吼吼 自己实现的数据分发模块
+自己实现的数据分发模块
 
 功能：
 1.外部有写入信号时，根据数据优先级将数据写入对应的FIFO中  

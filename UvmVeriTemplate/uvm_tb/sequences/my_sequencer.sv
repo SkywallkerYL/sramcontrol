@@ -2,9 +2,10 @@
 `define MY_SEQUENCER__SV
 
 class my_sequencer extends uvm_sequencer #(my_transaction);
-   
+   //int id;
    function new(string name, uvm_component parent);
       super.new(name, parent);
+      //this.id = id ;
    endfunction 
    //extern virtual task main_phase(uvm_phase phase);
    `uvm_component_utils(my_sequencer)
