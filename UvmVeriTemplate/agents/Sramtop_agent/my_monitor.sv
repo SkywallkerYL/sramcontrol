@@ -5,6 +5,8 @@ class my_monitor extends uvm_monitor;
    //monitor 例化2组读端口
    virtual read_interface r_if_0;
    //virtual read_interface r_if_1;
+   //添加一个id参数,用于区分不同的monitor
+   int id;
 
    uvm_analysis_port #(my_transaction)  ap;
    
@@ -17,6 +19,9 @@ class my_monitor extends uvm_monitor;
       super.build_phase(phase);
       if(!uvm_config_db#(virtual read_interface)::get(this, "", "rif", r_if_0))
          `uvm_fatal("my_monitor", "virtual interface must be set for rif0!!!")
+      //配置id
+      if(!uvm_config_db#(int)::get(this, "", "id", id))
+         `uvm_info("my_monitor", "id must be set for monitor!!!",UVM_LOW)
       //if(!uvm_config_db#(virtual read_interface)::get(this, "", "rif1", r_if_1))
          //`uvm_fatal("my_monitor", "virtual interface must be set for rif1!!!")
       ap = new("ap", this);
@@ -58,6 +63,10 @@ task my_monitor::collect_one_pkt(my_transaction tr);
          data = r_if_0.data;
          data_q.push_back(data);
          //$display("data = %0h",data);
+         //检验该通道的数据是否属于该通道  
+         if((data & 8'h0f) != id) begin
+            `uvm_fatal("my_monitor", "data is not belong to this channel");
+         end
          break;
       end
    end

@@ -126,8 +126,7 @@ function void allport_test::build_phase(uvm_phase phase);
    uvm_config_db#(uvm_sequence_base)::set(this,"env15.i_agt.sqr.main_phase","default_sequence",seq15);
    //uvm_config_db#(uvm_object_wrapper)::set(this,"env15.i_agt.sqr.main_phase","default_sequence",my_onechannel_sequence::type_id::get());
    //给每一个Sequence设置一个不同的ID
-
-
+   
 endfunction
 
 function void allport_test::report_phase(uvm_phase phase);

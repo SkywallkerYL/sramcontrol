@@ -70,22 +70,22 @@ module tb_uvmallport;
     write_interface w_if_15(.clock(clock),.reset(reset));
     read_interface r_if_15(.clock(clock),.reset(reset));
     //16个id 
-    //int id0 = 0;
-    //int id1 = 1;
-    //int id2 = 2;
-    //int id3 = 3;
-    //int id4 = 4;
-    //int id5 = 5;
-    //int id6 = 6;
-    //int id7 = 7;
-    //int id8 = 8;
-    //int id9 = 9;
-    //int id10 = 10;
-    //int id11 = 11;
-    //int id12 = 12;
-    //int id13 = 13;
-    //int id14 = 14;
-    //int id15 = 15;
+    int id0 = 0;
+    int id1 = 1;
+    int id2 = 2;
+    int id3 = 3;
+    int id4 = 4;
+    int id5 = 5;
+    int id6 = 6;
+    int id7 = 7;
+    int id8 = 8;
+    int id9 = 9;
+    int id10 = 10;
+    int id11 = 11;
+    int id12 = 12;
+    int id13 = 13;
+    int id14 = 14;
+    int id15 = 15;
     
 
     initial begin
@@ -123,8 +123,24 @@ module tb_uvmallport;
         uvm_config_db#(virtual read_interface)::set(null, "uvm_test_top.env14.o_agt.mon", "rif", r_if_14);
         uvm_config_db#(virtual read_interface)::set(null, "uvm_test_top.env15.o_agt.mon", "rif", r_if_15);
 
-        //向sequence中传递id
-        //uvm_config_db#(int)::set(null, "uvm_test_top.env0.i_agt.sqr.main_phase.default_sequence", "id", id0);
+        //向monitor中传递id
+        uvm_config_db#(int)::set(null, "uvm_test_top.env0.o_agt.mon", "id", id0);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env1.o_agt.mon", "id", id1);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env2.o_agt.mon", "id", id2);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env3.o_agt.mon", "id", id3);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env4.o_agt.mon", "id", id4);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env5.o_agt.mon", "id", id5);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env6.o_agt.mon", "id", id6);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env7.o_agt.mon", "id", id7);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env8.o_agt.mon", "id", id8);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env9.o_agt.mon", "id", id9);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env10.o_agt.mon", "id", id10);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env11.o_agt.mon", "id", id11);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env12.o_agt.mon", "id", id12);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env13.o_agt.mon", "id", id13);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env14.o_agt.mon", "id", id14);
+        uvm_config_db#(int)::set(null, "uvm_test_top.env15.o_agt.mon", "id", id15);
+        
 
     end
 
