@@ -33,14 +33,22 @@ class CrcModel extends Module with Config{
   io.crc := crc.io.crc_out
 }
 
-class ramModel(addrwidth:Int, datawidth : Int) extends BlackBox {
+class ramModel(addrwidth:Int, datawidth : Int,datanum : Int = 0) extends BlackBox {
   val io = IO(new Bundle {
-    val clock = Input(Clock())
-    val reset = Input(Bool())
-    val read  = Flipped(new RamRead(addrwidth,datawidth) )
-    val write = Flipped(new RamWrite(addrwidth,datawidth))
+    val clka = Input(Clock())
+    //val reset = Input(Bool())
+    val addra = Input(UInt(addrwidth.W))
+    val dina = Input(UInt(datawidth.W))
+    val wea = Input(Bool())
+
+    val clkb = Input(Clock())
+    val addrb = Input(UInt(addrwidth.W))
+    val doutb = Output(UInt(datawidth.W))
+    //val read  = Flipped(new RamRead(addrwidth,datawidth) )
+    //val write = Flipped(new RamWrite(addrwidth,datawidth))
   })
-  override def desiredName = s"ramModel_${addrwidth}_${datawidth}"
+  
+  override def desiredName = s"ramModel_${addrwidth}_${datanum}_${datawidth}"
 }
 class SramModel(addrwidth:Int, datawidth : Int, Type : Int = 0) extends Module with Config{
   val io = IO(new Bundle {
@@ -77,16 +85,30 @@ class DualSramModel(addrwidth:Int, datawidth : Int, datanum : Int) extends Modul
   io.write.wrValid := io.write.wren
 }
 
-class ramblackbox(addrwidth:Int, datawidth : Int,datanum : Int) extends Module with Config{
+class ramblackbox(addrwidth:Int, datawidth : Int, datanum : Int = 0,useip : Boolean = true ) extends Module with Config{
   val io = IO(new Bundle {
     val read  = Flipped(new RamRead(addrwidth,datawidth) )
     val write = Flipped(new RamWrite(addrwidth,datawidth))
   })
+  
+  if(USEIP && useip){
 
+    val ram = Module(new ramModel(addrwidth,datawidth,datanum))
+    ram.io.clka := clock
+    ram.io.clkb := clock
+
+    ram.io.addra := io.write.wrAddr
+    ram.io.dina := io.write.wrData
+    ram.io.wea := io.write.wren
+    ram.io.addrb := io.read.rdAddr
+    io.read.rdData := ram.io.doutb
+  }else {
     val ram = Module(new DualSramModel(addrwidth,datawidth,datanum))
     io.read <> ram.io.read
     io.write <> ram.io.write
-  
+  }
+  io.read.rdValid := RegNext(io.read.rden)
+  io.write.wrValid := io.write.wren
 }
 
 class romModel(addrwidth:Int, datawidth : Int) extends BlackBox {

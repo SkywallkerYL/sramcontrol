@@ -11,7 +11,7 @@ trait Config {
 
   
 
-  val use_ip = true//是否使用Xilinx的浮点运算IP
+  val USEIP = true//是否使用Xilinx的浮点运算IP
 //config of fixedpoint data format
   val Nmax = 12
   val Mmax = 32
