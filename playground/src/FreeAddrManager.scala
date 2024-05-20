@@ -302,7 +302,8 @@ class FreeAddrManager extends Module with Config {
                     WrAddrReg(WrId) := WrAddrReg(WrId) + 1.U
                 }
             }
-        }.elsewhen(io.RdAddr.valid){
+        }
+        when(io.RdAddr.valid){
             //读出数据
             when(SramFlagReg(RdId)&& SramSizeReg(RdId) =/= OneSramSize.U){
                 SramSizeReg(RdId) := SramSizeReg(RdId) + 1.U

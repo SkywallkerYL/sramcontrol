@@ -11,7 +11,7 @@ trait Config {
 
   
 
-  val USEIP = true//是否使用Xilinx的浮点运算IP
+  val USEIP = false//是否使用ROM IP
 //config of fixedpoint data format
   val Nmax = 12
   val Mmax = 32
@@ -42,7 +42,7 @@ trait Config {
   val portwidth = log2Ceil(portnum)
 
   val Sramnum = 32 
-  val OneSramSize = 1024
+  val OneSramSize = 1024 * 256
   val SramSizeWidth = log2Ceil(OneSramSize)+1
   val readSramWidth = log2Ceil(OneSramSize)
   val SramIdwidth = log2Ceil(Sramnum)

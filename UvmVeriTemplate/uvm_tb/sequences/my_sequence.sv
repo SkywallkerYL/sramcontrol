@@ -105,7 +105,7 @@ class my_onechannel_sequence extends uvm_sequence #(my_transaction);
          //约束数据包的长度
          `uvm_do_with(m_trans,{
             m_trans.data_queue.size() inside {[64:300]};
-            //m_trans.data_queue[0] == ((m_trans.data_queue[0]&8'hf0)|(id&8'h0f));
+            m_trans.data_queue[0] == ((m_trans.data_queue[0]&8'hf0)|(id&8'h0f));
             
       })
          //$display("my_onechannel_sequence id is %0d and dataone is %0x",id,m_trans.data_queue[0]);
